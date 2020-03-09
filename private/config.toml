@@ -1,0 +1,13 @@
+[infura]
+id = "7704895defbb4d9e8505f551df4e7e38"
+secret = "2e5ae17f9d2a45209f65dc3d6770c558"
+endpoint = "https://mainnet.infura.io/v3/7704895defbb4d9e8505f551df4e7e38"
+
+
+[database]
+protocol = "mongodb"
+host = "localhost"
+port = "27017"
+user = "admin"
+password = "admin"
+dbName = "lotto"

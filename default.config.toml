@@ -1,0 +1,31 @@
+# MerMer Default Config
+
+title = "MerMer"
+
+[base]
+folder = "MerMer-framework"
+static = "./build/frontend/"
+debug = false
+
+[blockchain]
+type = "ethereum"
+
+[database]
+protocol = "mongodb"
+db = "//localhost:27017/lotto"
+user = ""
+password = ""
+dbName = "lotto"
+
+[infura]
+id = ""
+secret = ""
+endpoint = ""
+
+[api]
+pathname = [
+  "get | /,/version | Static.Utils.readPackageInfo",
+  "post | /lotto | Bot.Lotto.BuyLottoTicket",
+  "get | /lotto | Bot.Lotto.GetLottoNumber",
+  "get | /drawn/:id | Bot.Lotto.DrawnLottoTicket",
+]
