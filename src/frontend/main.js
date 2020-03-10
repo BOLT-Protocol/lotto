@@ -7,6 +7,8 @@ import 'vant/lib/index.css';
 // component
 import Lotto from './components/Lotto.vue';
 import DrawnDashboard from './components/DrawnDashboard.vue';
+import Drawn from './components/Drawn.vue';
+import Receipt from './components/Receipt.vue';
 
 Vue.use(VueRouter);
 Vue.prototype.$axios = Axios;
@@ -14,21 +16,20 @@ Vue.prototype.$axios = Axios;
 const routes = [
   {
     path: '/',
-    // 重定向
     component: Lotto,
   },
   {
     path: '/dashboard',
     component: DrawnDashboard,
   },
-  // {
-  //   path: '/ratings',
-  //   component: Ratings
-  // },
-  // {
-  //   path: '/seller',
-  //   component: Seller
-  // },
+  {
+    path: '/receipt/:id',
+    component: Receipt,
+  },
+  {
+    path: '/drawn/:id',
+    component: Drawn,
+  },
 ];
 
 const router = new VueRouter({
@@ -41,6 +42,5 @@ new Vue({
   el: '#app',
   components: { App },
   template: '<App/>',
-  // 4. 建立並掛載實例
   router,
 });

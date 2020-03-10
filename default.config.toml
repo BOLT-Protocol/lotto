@@ -6,6 +6,8 @@ title = "MerMer"
 folder = "MerMer-framework"
 static = "./build/frontend/"
 debug = false
+serviceUserID = "lotto"
+servicePassword = "P@ssw0rd"
 
 [blockchain]
 type = "ethereum"
@@ -22,10 +24,15 @@ id = ""
 secret = ""
 endpoint = ""
 
+[microservice]
+keystone = "http://127.0.0.1:5999"
+trust = "http://127.0.0.1:5567"
+
 [api]
 pathname = [
   "get | /,/version | Static.Utils.readPackageInfo",
   "post | /lotto | Bot.Lotto.BuyLottoTicket",
   "get | /lotto | Bot.Lotto.GetLottoNumber",
+  "get | /lotto/:id | Bot.Lotto.GetLottoTicket",
   "get | /drawn/:id | Bot.Lotto.DrawnLottoTicket",
 ]

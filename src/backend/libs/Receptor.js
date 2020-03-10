@@ -44,6 +44,7 @@ class Receptor extends Bot {
         const app = new koa();
         app.use(staticServe(this.config.base.static))
           .use(bodyParser({ multipart: true }))
+          .use(Utils.crossOrigin())
           .use(this.router.routes())
           .use(this.router.allowedMethods());
         return this.listen({ options, callback: app.callback() });
@@ -107,7 +108,6 @@ class Receptor extends Bot {
         }).catch((e) => {
           console.trace(e);
           ctx.body = e;
-          next();
         });
     });
     return Promise.resolve(true);

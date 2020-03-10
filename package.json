@@ -33,6 +33,7 @@
   },
   "bundleDependencies": false,
   "dependencies": {
+    "@chenfengyuan/vue-qrcode": "^1.0.2",
     "axios": "^0.19.2",
     "babel-core": "^6.26.3",
     "babel-helper-vue-jsx-merge-props": "^2.0.3",
