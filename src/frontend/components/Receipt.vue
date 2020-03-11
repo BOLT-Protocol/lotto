@@ -82,7 +82,7 @@ export default {
   },
   methods: {
     drawnLink: function() {
-      this.$router.push({ path: `${this.config.ip}/drawn/${this.id}` })
+      window.open(`${this.config.ip}/#/drawn/${this.id}`)
     },
     trustLink: function() {
       window.open(`http://52.207.62.176:3002/lightTx/0x${this.lightTxHash}`)

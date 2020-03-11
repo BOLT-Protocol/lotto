@@ -13,8 +13,8 @@
     </Row>
     <center><h1 :style="{ fontSize: '250%' }">你的票券</h1></center>
     <Row gutter="50" v-for="items in result">
-      <Col span="4" v-for="item in items.numbers">
-        <center class="number blueNumber"><h1>{{ item }}</h1></center>
+      <Col span="4" v-for="(item, index) in items.numbers">
+        <center class="number" :class="{ 'blueNumber' : index < 4, 'redNumber' : index === 4}"><h1>{{ item }}</h1></center>
       </Col>
       <Col span="4">
         <center><h1 :style="{ marginTop: '110px' }">{{ items.payoffType }}</h1></center>
@@ -59,7 +59,6 @@ export default {
   mounted: function () {
     let that = this;
     this.$axios.get(`${this.config.ip}/drawn/${this.$route.params.id}`).then(function(res){
-      console.log('res.data.code', res.data.code)
       if (res.data.code === '10004') {
         that.show = true
       } else {

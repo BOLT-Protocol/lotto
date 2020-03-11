@@ -12,7 +12,7 @@ import Receipt from './components/Receipt.vue';
 
 Vue.use(VueRouter);
 Vue.prototype.$axios = Axios;
-Vue.prototype.config = { ip: 'http://127.0.0.1' };
+Vue.prototype.config = { ip: process.env.DOMAIN || '' };
 
 const routes = [
   {

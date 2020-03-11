@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const Dotenv = require('dotenv-webpack');
 
 function getExternals() {
   const nodeModules = fs.readdirSync(path.join(process.cwd(), 'node_modules'));
@@ -68,6 +69,9 @@ const frontend = {
     port: 8080,
   },
   plugins: [
+    new Dotenv({
+      path: './.f2e.env',
+    }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new VueLoaderPlugin(),
