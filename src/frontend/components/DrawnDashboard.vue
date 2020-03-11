@@ -4,7 +4,7 @@
     <Row gutter="50">
       <Col offset="1"></Col>
       <Col span="4" v-for="item in numbers">
-        <center class="number blackNumber"><h1>{{ item }}</h1></center>
+        <center class="number blueNumber"><h1>{{ item }}</h1></center>
       </Col>
 
       <Col span="5">
@@ -31,13 +31,13 @@ export default {
   },
   mounted: function () {
     let that = this;
-    that.$axios.get(`http://${this.config.ip}/lotto`).then(function(res){
+    that.$axios.get(`${this.config.ip}/lotto`).then(function(res){
       that.stageHeight = res.data.data.stageHeight
       that.superNumber = res.data.data.superNumber
       that.numbers = res.data.data.numbers
     })
     setInterval(function(){ 
-      that.$axios.get(`http://${this.config.ip}/lotto`).then(function(res){
+      that.$axios.get(`${this.config.ip}/lotto`).then(function(res){
         that.stageHeight = res.data.data.stageHeight
         that.superNumber = res.data.data.superNumber
         that.numbers = res.data.data.numbers
@@ -58,8 +58,8 @@ export default {
 .number > h1 {
   padding-top: 5px;
 }
-.blackNumber {
-  background-color: #000000;
+.blueNumber {
+  background-color: #1da4f7;
 }
 .redNumber {
   background-color: red;

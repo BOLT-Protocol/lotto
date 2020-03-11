@@ -9,6 +9,7 @@
           v-model="item2.value"
           type="number"
           @input="validateNumber(index1, index2, item2.value)"
+          :class="{ 'blueBorder' : index2 < 4, 'redBorder' : index2 === 4}"
         />
       </Col>
       <div style="margin-bottom: 10px;"></div>
@@ -67,21 +68,21 @@ export default {
             })
         })
       }
-      this.$axios.post(`http://${this.config.ip}/lotto`, data)
+      this.$axios.post(`${this.config.ip}/lotto`, data)
         .then(function(res){
           if(res.data.code === "00000") {
             that.$router.push({ path: `/receipt/${res.data.data.id}` })
           } else {
             let message = ''
             switch (res.data.code) {
+              case '10000':
+                message = '總額不對 每注金額為 1/10hkx or 1/1usx'
+                break;
               case '10002':
                 message = '號碼有誤，請輸入 1~16 間的數字'
                 break;
               case '10001':
                 message = '選擇幣種不支援'
-                break;
-              case '10002':
-                message = '總額不對 每注金額為 1/10hkx or 1/1usx'
                 break;
               default:
                 message = `伺服器錯誤！！(${res.data})`
@@ -153,6 +154,14 @@ export default {
   font-size: 50px;
   height: 100px;
   padding-top: 37px;
+}
+.blueBorder {
+  border-color: #1da4f7;
+  border-width: thick;
+}
+.redBorder {
+  border-color: red;
+  border-width: thick;
 }
 </style>
 

@@ -5,7 +5,7 @@
     <Row gutter="50">
       <Col offset="1"></Col>
       <Col span="4" v-for="item in lottoNumbers">
-        <center class="number blackNumber"><h1>{{ item }}</h1></center>
+        <center class="number blueNumber"><h1>{{ item }}</h1></center>
       </Col>
       <Col span="5">
         <center class="number redNumber"><h1>{{ lottoSuperNumber }}</h1></center>
@@ -14,7 +14,7 @@
     <center><h1 :style="{ fontSize: '250%' }">你的票券</h1></center>
     <Row gutter="50" v-for="items in result">
       <Col span="4" v-for="item in items.numbers">
-        <center class="number blackNumber"><h1>{{ item }}</h1></center>
+        <center class="number blueNumber"><h1>{{ item }}</h1></center>
       </Col>
       <Col span="4">
         <center><h1 :style="{ marginTop: '110px' }">{{ items.payoffType }}</h1></center>
@@ -58,7 +58,7 @@ export default {
   },
   mounted: function () {
     let that = this;
-    this.$axios.get(`http://${this.config.ip}/drawn/${this.$route.params.id}`).then(function(res){
+    this.$axios.get(`${this.config.ip}/drawn/${this.$route.params.id}`).then(function(res){
       console.log('res.data.code', res.data.code)
       if (res.data.code === '10004') {
         that.show = true
@@ -89,7 +89,6 @@ export default {
 .numbers {
   color: #ffffff;
   border-radius: 100%;
-  background-color: #000000;
   width: 50px;
   height: 50px;
 }

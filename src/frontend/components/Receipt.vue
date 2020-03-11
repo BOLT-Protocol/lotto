@@ -9,7 +9,7 @@
         </div>
       </Col>
       <Col span="12">
-        <h2>Amount: {{ currencyAmount }}{{ currency }}</h2>
+        <h2>Amount: {{ currencyAmount }} {{ currency }}</h2>
       </Col>
     </Row>
     <center>
@@ -19,15 +19,15 @@
       <Col span="12">
         <h3 :style="{ marginLeft: '20px' }">兌獎</h3>
         <div @click="drawnLink">
-          <VueQrcode :value="`http://${this.config.ip}/drawn/`+id" :options="{ width: 200 }"></VueQrcode>
+          <VueQrcode :value="`${this.config.ip}/#/drawn/`+id" :options="{ width: 200 }"></VueQrcode>
         </div>
       </Col>
       <Col span="12">
         <h2>No. {{ id }}</h2>
         <Row gutter="80" v-for="item in numbers">
-          <Col span="4" v-for="number in item">
-            <center>
-              <div class="numbers">
+          <Col span="4" v-for="(number, index) in item">
+            <center class="numbers" :class="{ 'blueNumber' : index < 4, 'redNumber' : index === 4}">
+              <div>
                 <h1>{{ number }}</h1>
               </div>
             </center>
@@ -70,7 +70,7 @@ export default {
   },
   mounted: function () {
     let that = this;
-    that.$axios.get(`http://${this.config.ip}/lotto/${this.$route.params.id}`).then(function(res){
+    that.$axios.get(`${this.config.ip}/lotto/${this.$route.params.id}`).then(function(res){
       that.id = res.data.data._id
       that.numbers = res.data.data.numbers
       that.stageHeight = res.data.data.stageHeight
@@ -82,7 +82,7 @@ export default {
   },
   methods: {
     drawnLink: function() {
-      this.$router.push({ path: `/drawn/${this.id}` })
+      this.$router.push({ path: `${this.config.ip}/drawn/${this.id}` })
     },
     trustLink: function() {
       window.open(`http://52.207.62.176:3002/lightTx/0x${this.lightTxHash}`)
@@ -106,7 +106,6 @@ export default {
 .numbers {
   color: #ffffff;
   border-radius: 100%;
-  background-color: #000000;
   width: 50px;
   height: 50px;
 }

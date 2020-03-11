@@ -101,8 +101,8 @@ class Lotto extends Bot {
       const {
         numbers, currency, currencyAmount,
       } = body;
-      if (currency !== 'hkx' || currency !== 'hkx') throw new CodeError({ message: 'invalid currency', code: Code.INVALID_CURRENCY });
-      if (Number(currencyAmount) === 0 || Number(currencyAmount) % 10 !== 0) throw new CodeError({ message: 'invalid bet amount, 1/10hkx or 1/1usx', code: Code.INVALID_BET_AMOUNT });
+      if (currency !== 'hkx' && currency !== 'usx') throw new CodeError({ message: 'invalid currency', code: Code.INVALID_CURRENCY });
+      if (Number(currencyAmount) === 0 && Number(currencyAmount) % 10 !== 0) throw new CodeError({ message: 'invalid bet amount, 1/10hkx or 1/1usx', code: Code.INVALID_BET_AMOUNT });
       if (numbers.length === 0) throw new CodeError({ message: 'invalid bet numbers', code: Code.INVALID_BET_NUMBERS });
       numbers.forEach((element) => {
         if (element.length !== 5 || !this.checkLottoNumberIsValid(element)) throw new CodeError({ message: 'invalid bet numbers', code: Code.INVALID_BET_NUMBERS });
@@ -190,26 +190,14 @@ class Lotto extends Bot {
     const userNumbersClone = dvalue.clone(userNumbers);
     // match red ball
     let matchRedBall = 0;
-    for (let i = 0; i < userNumbersClone.length; i++) {
-      if (Number(userNumbersClone[i]) === Number(correctNumberPairs.superNumber)) {
-        matchRedBall = 1;
-        userNumbersClone.splice(i, 1);
-        break;
-      }
-    }
+    const userSuperNumber = userNumbersClone[userNumbersClone.length - 1];
+    if (Number(userSuperNumber) === Number(correctNumberPairs.superNumber)) matchRedBall = 1;
 
     // match black ball
     let matchBlackBall = 0;
-    for (let i = 0; i < userNumbersClone.length; i++) {
-      const userNumber = userNumbersClone[i];
-      for (let j = 0; j < correctNumberPairs.numbers.length; j++) {
-        const correctNumber = correctNumberPairs.numbers[j];
-        if (Number(userNumber) === Number(correctNumber)) {
-          matchBlackBall += 1;
-          correctNumberPairs.numbers.splice(j, 1);
-          break;
-        }
-      }
+    // only user numbers no superNumber
+    for (let i = 0; i <= userNumbersClone.length - 2; i++) {
+      if (Number(userNumbersClone[i] === correctNumberPairs.numbers[i])) matchBlackBall += 1;
     }
 
     if (matchBlackBall === 4 && matchRedBall === 1) return '特等獎';
