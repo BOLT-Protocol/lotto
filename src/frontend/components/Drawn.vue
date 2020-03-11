@@ -58,8 +58,7 @@ export default {
   },
   mounted: function () {
     let that = this;
-    that.$axios.get(`http://127.0.0.1/drawn/${this.$route.params.id}`).then(function(res){
-
+    this.$axios.get(`http://${this.config.ip}/drawn/${this.$route.params.id}`).then(function(res){
       console.log('res.data.code', res.data.code)
       if (res.data.code === '10004') {
         that.show = true

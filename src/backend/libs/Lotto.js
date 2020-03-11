@@ -150,12 +150,13 @@ class Lotto extends Bot {
         this.logger.log(`id(${id}) create trust error: ${response.data}`);
         throw new CodeError({ message: `save trust error: ${response.data}`, code: Code.TRUST_ERROR });
       }
+      const { lightTxHash } = response.data.receipt;
+      await this.db.collection('LottoTicket').updateOne({ _id: new ObjectID(id) }, { $set: { lightTxHash } }, { upsert: true });
 
       return {
         message: 'success',
         data: {
           id,
-          trustID: itemID,
           nowTime,
         },
         code: Code.SUCCESS,

@@ -12,6 +12,7 @@ import Receipt from './components/Receipt.vue';
 
 Vue.use(VueRouter);
 Vue.prototype.$axios = Axios;
+Vue.prototype.config = { ip: '3.82.204.224' };
 
 const routes = [
   {

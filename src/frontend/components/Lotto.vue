@@ -67,7 +67,7 @@ export default {
             })
         })
       }
-      this.$axios.post('http://127.0.0.1/lotto', data)
+      this.$axios.post(`http://${this.config.ip}/lotto`, data)
         .then(function(res){
           if(res.data.code === "00000") {
             that.$router.push({ path: `/receipt/${res.data.data.id}` })

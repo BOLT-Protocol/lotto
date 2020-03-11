@@ -98,7 +98,8 @@
     "url": "git+https://github.com/MerMerLtd/MerMer-framework.git"
   },
   "scripts": {
-    "dev": "webpack&& webpack-dev-server --mode development --open 'google chrome'",
+    "dev": "NODE_ENV=develop webpack-dev-server --mode development --open 'google chrome'",
+    "build": "NODE_ENV=production webpack",
     "start": "bin/main.js"
   },
   "version": "0.1.11"

@@ -5,7 +5,7 @@
       <Col span="12">
         <h3 :style="{ marginLeft: '20px' }">購買證明</h3>
         <div @click="trustLink">
-          <VueQrcode value="https://platform.boltchain.io/" :options="{ width: 200 }"></VueQrcode>
+          <VueQrcode :value='"http://52.207.62.176:3002/lightTx/0x"+lightTxHash' :options="{ width: 200 }"></VueQrcode>
         </div>
       </Col>
       <Col span="12">
@@ -19,7 +19,7 @@
       <Col span="12">
         <h3 :style="{ marginLeft: '20px' }">兌獎</h3>
         <div @click="drawnLink">
-          <VueQrcode v-bind:value="'http://127.0.0.1/lotto/'+id" :options="{ width: 200 }"></VueQrcode>
+          <VueQrcode :value="`http://${this.config.ip}/drawn/`+id" :options="{ width: 200 }"></VueQrcode>
         </div>
       </Col>
       <Col span="12">
@@ -59,6 +59,7 @@ export default {
       time: 0,
       currency: '',
       currencyAmount: '',
+      lightTxHash: '',
     };
   },
   components: {
@@ -69,13 +70,14 @@ export default {
   },
   mounted: function () {
     let that = this;
-    that.$axios.get(`http://127.0.0.1/lotto/${this.$route.params.id}`).then(function(res){
+    that.$axios.get(`http://${this.config.ip}/lotto/${this.$route.params.id}`).then(function(res){
       that.id = res.data.data._id
       that.numbers = res.data.data.numbers
       that.stageHeight = res.data.data.stageHeight
       that.time = res.data.data.nowTime
       that.currency = res.data.data.currency
       that.currencyAmount = res.data.data.currencyAmount
+      that.lightTxHash = res.data.data.lightTxHash
     })
   },
   methods: {
@@ -83,7 +85,7 @@ export default {
       this.$router.push({ path: `/drawn/${this.id}` })
     },
     trustLink: function() {
-      window.open('https://platform.boltchain.io/')
+      window.open(`http://52.207.62.176:3002/lightTx/0x${this.lightTxHash}`)
     }
   },
   computed: {

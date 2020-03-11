@@ -31,13 +31,13 @@ export default {
   },
   mounted: function () {
     let that = this;
-    that.$axios.get('http://127.0.0.1/lotto').then(function(res){
+    that.$axios.get(`http://${this.config.ip}/lotto`).then(function(res){
       that.stageHeight = res.data.data.stageHeight
       that.superNumber = res.data.data.superNumber
       that.numbers = res.data.data.numbers
     })
     setInterval(function(){ 
-      that.$axios.get('http://127.0.0.1/lotto').then(function(res){
+      that.$axios.get(`http://${this.config.ip}/lotto`).then(function(res){
         that.stageHeight = res.data.data.stageHeight
         that.superNumber = res.data.data.superNumber
         that.numbers = res.data.data.numbers
