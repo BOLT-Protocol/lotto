@@ -12,7 +12,7 @@
               </Col>
             </RadioGroup>
             <Col span="24" :style="{ marginTop: '10px' }" >
-              <Divider v-show="index2 != 4" :style="{ borderStyle: 'dashed', color: '#FFAC55', borderColor: '#FFAC55', height: '0px', borderWidth: 'thick', marginTop: '20px' }" />
+              <Divider v-show="index2 != 4 || ( index1 != lottos.length - 1)" :class="{ 'number-divider': (index2 == 4) }" :style="{ borderStyle: 'dashed', color: '#FFAC55', borderColor: '#FFAC55', height: '0px', borderWidth: 'thick', marginTop: '20px' }" />
             </Col>
               
           </Row>
@@ -89,6 +89,7 @@ export default {
             that.$router.push({ path: `/receipt/${res.data.data.id}` })
           } else {
             let message = ''
+            this.show = false;
             switch (res.data.code) {
               case '10000':
                 message = '總額不對 每注金額為 1/10hkx or 1/1usx'
@@ -205,6 +206,9 @@ export default {
 .loading-block {
   padding: 50px;
   background-color: #fff;
+}
+.number-divider {
+  border-style: solid !important;
 }
 </style>
 
