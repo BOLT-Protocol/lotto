@@ -26,7 +26,7 @@
         <h2>No. {{ id }}</h2>
         <Row gutter="80" v-for="item in numbers">
           <Col span="4" v-for="(number, index) in item">
-            <center class="numbers" :class="{ 'blueNumber' : index < 4, 'redNumber' : index === 4}">
+            <center class="numbers" :class="{ 'blue-number' : index < 4, 'red-number' : index === 4}">
               <div>
                 <h1>{{ number }}</h1>
               </div>

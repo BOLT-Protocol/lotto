@@ -5,16 +5,16 @@
     <Row gutter="50">
       <Col offset="1"></Col>
       <Col span="4" v-for="item in lottoNumbers">
-        <center class="number blueNumber"><h1>{{ item }}</h1></center>
+        <center class="number blue-number"><h1>{{ item }}</h1></center>
       </Col>
       <Col span="5">
-        <center class="number redNumber"><h1>{{ lottoSuperNumber }}</h1></center>
+        <center class="number red-number"><h1>{{ lottoSuperNumber }}</h1></center>
       </Col>
     </Row>
     <center><h1 :style="{ fontSize: '250%' }">你的票券</h1></center>
     <Row gutter="50" v-for="items in result">
       <Col span="4" v-for="(item, index) in items.numbers">
-        <center class="number" :class="{ 'blueNumber' : index < 4, 'redNumber' : index === 4}"><h1>{{ item }}</h1></center>
+        <center class="number" :class="{ 'blue-number' : index < 4, 'red-number' : index === 4 }"><h1>{{ item }}</h1></center>
       </Col>
       <Col span="4">
         <center><h1 :style="{ marginTop: '110px' }">{{ items.payoffType }}</h1></center>

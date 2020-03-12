@@ -4,11 +4,11 @@
     <Row gutter="50">
       <Col offset="1"></Col>
       <Col span="4" v-for="item in numbers">
-        <center class="number blueNumber"><h1>{{ item }}</h1></center>
+        <center class="number blue-number"><h1>{{ item }}</h1></center>
       </Col>
 
       <Col span="5">
-        <center class="number redNumber"><h1>{{ superNumber }}</h1></center>
+        <center class="number red-number"><h1>{{ superNumber }}</h1></center>
       </Col>
     </Row>
   </div>
@@ -58,10 +58,10 @@ export default {
 .number > h1 {
   padding-top: 5px;
 }
-.blueNumber {
+.blue-number {
   background-color: #1da4f7;
 }
-.redNumber {
+.red-number {
   background-color: red;
 }
 </style>

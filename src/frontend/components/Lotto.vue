@@ -3,18 +3,25 @@
     <h1 :style="{ fontSize: '400%' }">請選擇 1~16 號</h1>
     <Row gutter="20" v-for="(item1, index1) in lottos">
       <div style="margin-top: 10px;"></div>
-      <Col span="24" class="numberInput" :style="{ marginTop: '20px', marginBottom: '20px' }" v-for="(item2, index2) in item1" >
-        <Field
-          clickable
-          v-model="item2.value"
-          type="number"
-          @input="validateNumber(index1, index2, item2.value)"
-          :class="{ 'blueBorder' : index2 < 4, 'redBorder' : index2 === 4}"
-        />
-      </Col>
+        <Col span="24" v-for="(item2, index2) in item1">
+          <h1 :style="{ fontSize: '300%' }">number {{ index2 + 1 }}</h1>
+          <Row gutter="20" >
+            <RadioGroup v-model="item2.value">
+              <Col span="3" v-for="n in 16" >
+                <Radio class="lotto-numbers" :style="{ position: 'relative', width: '100px' }" :class="{ 'tens-digit' : n > 9, 'red-lotto-number' : index2 == 4 }" :name="n" icon-size="100px">{{ n }}</Radio>
+              </Col>
+            </RadioGroup>
+            <Col span="24" :style="{ marginTop: '10px' }" >
+              <Divider v-show="index2 != 4" :style="{ borderStyle: 'dashed', color: '#FFAC55', borderColor: '#FFAC55', height: '0px', borderWidth: 'thick', marginTop: '20px' }" />
+            </Col>
+              
+          </Row>
+        </Col>
+
+      <!--</Col>-->
       <div style="margin-bottom: 10px;"></div>
-      <Divider :style="{ color: '#6E0D3A', borderColor: '#6E0D3A', padding: '0 100px', height: '0px', borderWidth: 'thick', marginTop: '20px' }" />
     </Row>
+    <Divider :style="{ color: '#6E0D3A', borderColor: '#6E0D3A', padding: '0 100px', height: '0px', borderWidth: 'thick', marginTop: '20px' }" />
     <div style="margin-top: 20px;"></div>
     
     <Button type="primary"  :style="{ fontSize: '50px', height: '100px' }" @click="addLotto">+ 新增一組</Button>
@@ -41,11 +48,18 @@
         提交
       </Button>
     </div>
+    <Overlay :show="show">
+      <div class="wrapper" @click.stop>
+        <div class="loading-block">
+          <Loading color="#1989fa" size="200" />
+        </div>
+      </div>
+    </Overlay>
   </div>
 </template>
 
 <script>
-import { Field, Button, Col, Row, RadioGroup, Radio, Divider, Notify } from 'vant';
+import { Field, Button, Col, Row, RadioGroup, Radio, Divider, Notify, Loading, Overlay } from 'vant';
 export default {
   data() {
     return {
@@ -68,6 +82,7 @@ export default {
             })
         })
       }
+      this.show = true;
       this.$axios.post(`${this.config.ip}/lotto`, data)
         .then(function(res){
           if(res.data.code === "00000") {
@@ -118,6 +133,8 @@ export default {
     Radio,
     Divider,
     Notify,
+    Loading,
+    Overlay,
   },
   computed: {
     cost: function() {
@@ -155,13 +172,39 @@ export default {
   height: 100px;
   padding-top: 37px;
 }
-.blueBorder {
+.blue-border {
   border-color: #1da4f7;
   border-width: thick;
 }
-.redBorder {
+.red-border {
   border-color: red;
   border-width: thick;
+}
+.lotto-numbers > div > .van-icon-success:before {
+  content: ""
+}
+.lotto-numbers > span {
+  font-size: 50px;
+  position: absolute;
+  color: #000000;
+  left: 28px;
+}
+.lotto-numbers[aria-checked="true"] > span {
+  font-size: 50px;
+  position: absolute;
+  color: #FFFFFF;
+  left: 28px;
+}
+.tens-digit > span {
+  left: 18px !important;
+}
+.red-lotto-number > .van-radio__icon--checked > i {
+  background-color: red;
+  border-color: red;
+}
+.loading-block {
+  padding: 50px;
+  background-color: #fff;
 }
 </style>
 
