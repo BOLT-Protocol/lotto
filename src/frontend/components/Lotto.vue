@@ -7,14 +7,13 @@
           <h1 :style="{ fontSize: '300%' }">number {{ index2 + 1 }}</h1>
           <Row gutter="20" >
             <RadioGroup v-model="item2.value">
-              <Col span="3" v-for="n in 16" >
+              <Col span="3" v-for="n in 16">
                 <Radio class="lotto-numbers" :style="{ position: 'relative', width: '100px' }" :class="{ 'tens-digit' : n > 9, 'red-lotto-number' : index2 == 4 }" :name="n" icon-size="100px">{{ n }}</Radio>
               </Col>
             </RadioGroup>
             <Col span="24" :style="{ marginTop: '10px' }" >
               <Divider v-show="index2 != 4 || ( index1 != lottos.length - 1)" :class="{ 'number-divider': (index2 == 4) }" :style="{ borderStyle: 'dashed', color: '#FFAC55', borderColor: '#FFAC55', height: '0px', borderWidth: 'thick', marginTop: '20px' }" />
-            </Col>
-              
+            </Col>              
           </Row>
         </Col>
 
@@ -89,7 +88,8 @@ export default {
             that.$router.push({ path: `/receipt/${res.data.data.id}` })
           } else {
             let message = ''
-            this.show = false;
+            let duration = 500
+            that.show = false;
             switch (res.data.code) {
               case '10000':
                 message = '總額不對 每注金額為 1/10hkx or 1/1usx'
@@ -101,13 +101,14 @@ export default {
                 message = '選擇幣種不支援'
                 break;
               default:
-                message = `伺服器錯誤！！(${res.data})`
+                message = `伺服器錯誤！！(${JSON.stringify(res.data.message)})`
+                duration = 1500
                 break;
             }
 
             Notify({
               message,
-              duration: 500
+              duration
             });
           }
         })
@@ -209,6 +210,10 @@ export default {
 }
 .number-divider {
   border-style: solid !important;
+}
+.van-popup {
+  line-height: 60px;
+  height: 180px;
 }
 </style>
 
