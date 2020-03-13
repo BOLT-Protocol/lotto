@@ -1,7 +1,7 @@
 <template>
   <div class="drawn">
     <center><h1 :style="{ fontSize: '300%' }">開獎</h1></center>
-    <center><h1 :style="{ fontSize: '200%' }">stageHeight: {{ stageHeight }}</h1></center>
+    <center><h1 :style="{ fontSize: '200%' }">stageHeight: {{ parseInt(stageHeight || '0', 16) }}</h1></center>
     <Row gutter="50">
       <Col offset="1"></Col>
       <Col span="4" v-for="item in lottoNumbers">

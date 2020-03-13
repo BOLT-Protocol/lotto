@@ -24,6 +24,8 @@
       </Col>
       <Col span="12">
         <h2>No. {{ id }}</h2>
+        <h2>stageHeight: {{ parseInt(stageHeight || '0', 16) }}</h2>
+        <h2>開獎 stageHeight: {{ parseInt(stageHeight || '0', 16) + 5 }}</h2>
         <Row gutter="80" v-for="item in numbers">
           <Col span="4" v-for="(number, index) in item">
             <center class="numbers" :class="{ 'blue-number' : index < 4, 'red-number' : index === 4}">
@@ -42,8 +44,7 @@
       <Col span="12">
       </Col>
     </Row>
-    <h2>time {{ timeFormat }}</h2>
-  
+    <h2>購買時間 {{ timeFormat }}</h2>
   </div>
 </template>
 
