@@ -116,7 +116,7 @@ class Receptor extends Bot {
   listen({ options, callback }) {
     return Promise.all([
       this.listenHttp({ port: defaultHTTP.pop(), options, callback }),
-      this.listenHttps({ port: defaultHTTPS.pop(), options, callback }),
+      // this.listenHttps({ port: defaultHTTPS.pop(), options, callback }),
     ]).then(() => this);
   }
 

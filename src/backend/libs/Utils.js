@@ -642,6 +642,21 @@ class Utils {
       console.log('db e:', e.message);
     }
   }
+
+  static isValidNumber(num) {
+    if (!(/^(([\d]{1,18}(\.\d*)*)|(10{18}))$/.test(num))) {
+      return false;
+    }
+    if (num < 0) return false;
+    return true;
+  }
+
+  static randomStr(length) {
+    let key = '';
+    const charset = '0123456789abcdefghijklmnopqrstuvwxyz';
+    for (let i = 0; i < length; i++) { key += charset.charAt(Math.floor(Math.random() * charset.length)); }
+    return key;
+  }
 }
 
 

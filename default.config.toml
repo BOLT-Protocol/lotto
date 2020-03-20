@@ -24,15 +24,31 @@ id = ""
 secret = ""
 endpoint = ""
 
+[mailer]
+host = 'smtp.gmail.com'
+secure = true
+port = 465
+user = ''
+password = ''
+
 [microservice]
+keychain = "http://127.0.0.1:5566"
 keystone = "http://127.0.0.1:5999"
 trust = "http://127.0.0.1:5567"
+currency = "http://127.0.0.1:3333"
 
 [api]
 pathname = [
   "get | /,/version | Static.Utils.readPackageInfo",
-  "post | /lotto | Bot.Lotto.BuyLottoTicket",
+
+  # lotto
+  "post | /lotto/:userID | Bot.Lotto.BuyLottoTicket",
   "get | /lotto | Bot.Lotto.GetLottoNumber",
   "get | /lotto/:id | Bot.Lotto.GetLottoTicket",
   "get | /drawn/:id | Bot.Lotto.DrawnLottoTicket",
+
+  # user
+  "post | /user/register | Bot.User.Register",
+  "get | /user/:userID/info | Bot.User.GetUserInfo",
+  "get | /user/:userID/email | Bot.User.SendKeyToEmail"
 ]
