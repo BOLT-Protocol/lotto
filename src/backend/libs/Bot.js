@@ -159,8 +159,6 @@ class Bot {
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
     if (isComplete) return response;
-    console.log('requestUrl:', requestUrl);
-
     console.log('retry too many times');
     throw { message, step };
   }

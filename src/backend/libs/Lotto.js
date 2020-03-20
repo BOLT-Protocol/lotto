@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { ObjectID } = require('mongodb');
 const dvalue = require('dvalue');
+const BigNumber = require('bignumber.js');
 const Bot = require('./Bot');
 const Utils = require('./Utils');
 const CodeError = require('./CodeError');
@@ -20,8 +21,8 @@ class Lotto extends Bot {
       config, database, logger, i18n,
     })
       .then(async () => {
-        const evidenceAddress = await this.findOne({ key: 'evidenceServiceAddress' });
-        if (!evidenceAddress) {
+        const lottoAddress = await this.findOne({ key: 'lottoServiceAddress' });
+        if (!lottoAddress) {
           const { serviceUserID, servicePassword } = this.config.base;
           const response = await this.loginKeystone({ userID: serviceUserID, password: servicePassword });
 
@@ -29,17 +30,17 @@ class Lotto extends Bot {
             ops: [
               {
                 type: 'put',
-                key: 'evidenceServiceAddress',
+                key: 'lottoServiceAddress',
                 value: response.address,
               },
               {
                 type: 'put',
-                key: 'evidenceServiceApiKey',
+                key: 'lottoServiceApiKey',
                 value: response.apiKey,
               },
               {
                 type: 'put',
-                key: 'evidenceServiceApiSecret',
+                key: 'lottoServiceApiSecret',
                 value: response.apiSecret,
               },
             ],
@@ -47,14 +48,66 @@ class Lotto extends Bot {
         }
       })
       .then(() => this.createKeystoneToken())
-      .then(({ token, tokenSecret }) => {
+      .then(async ({ token, tokenSecret, address }) => {
         this.token = token;
         this.tokenSecret = tokenSecret;
+        this.address = address;
+        await this.write({ key: 'lottoServiceToken', value: token });
+
+        return this;
+      })
+      .then(async () => {
+        // check usx, hkx currency is exist
+        const url = `${this.config.microservice.currency}/find`;
+        let response = await axios.post(url, { name: 'USX' });
+        const { code } = response.data;
+        if (code === undefined || code !== 0) {
+          this.logger.log('currency USX not found, creating');
+          // create USX currency
+          const currencyUrl = `${this.config.microservice.currency}/create`;
+          response = await axios.post(currencyUrl, {
+            name: 'USX',
+            symbol: 'USX',
+            totalSupply: '1000000000000000000',
+            opAccountAddress: this.address,
+          }, { headers: { token: this.token } });
+          if (response.data.code === undefined || response.data.code !== 0) throw new CodeError({ code: 9999, message: `create USX currency error: ${JSON.stringify(createResponse.data)}` });
+          this.logger.log('currency USX create success');
+        }
+
+        await this.write({ key: 'USXAddress', value: response.data.currency.address });
+        return this;
+      })
+      .then(async () => {
+        // check usx, hkx currency is exist
+        const url = `${this.config.microservice.currency}/find`;
+        let response = await axios.post(url, { name: 'HKX' });
+        const { code } = response.data;
+        if (code === undefined || code !== 0) {
+          this.logger.log('currency HKX not found, creating');
+          // create USX currency
+          const currencyUrl = `${this.config.microservice.currency}/create`;
+          response = await axios.post(currencyUrl, {
+            name: 'HKX',
+            symbol: 'HKX',
+            totalSupply: '1000000000000000000',
+            opAccountAddress: this.address,
+          }, { headers: { token: this.token } });
+          if (response.data.code === undefined || response.data.code !== 0) throw new CodeError({ code: 9999, message: `create HKX currency error: ${JSON.stringify(createResponse.data)}` });
+          this.logger.log('currency HKX create success');
+        }
+
+        await this.write({ key: 'HKXAddress', value: response.data.currency.address });
+
         return this;
       })
       .catch(async (e) => {
-        console.log('Create token fail:');
-        await this.reRegisterKeystoneUser();
+        if (e.code === 9999) {
+          console.trace(e.message);
+        } else {
+          console.log('Create token fail:');
+          await this.reRegisterKeystoneUser();
+        }
         throw Error(e);
       });
   }
@@ -96,62 +149,120 @@ class Lotto extends Bot {
     return true;
   }
 
-  async BuyLottoTicket({ body }) {
+  calculatorAmount({ numbers, currency }) {
+    if (currency.toUpperCase() === 'USX') {
+      return numbers.length * 1;
+    }
+    if (currency.toUpperCase() === 'HKX') {
+      return numbers.length * 10;
+    }
+
+    return 0;
+  }
+
+  async BuyLottoTicket({ body, params }) {
     try {
-      const {
-        numbers, currency, currencyAmount,
-      } = body;
-      if (currency !== 'hkx' && currency !== 'usx') throw new CodeError({ message: 'invalid currency', code: Code.INVALID_CURRENCY });
-      if (Number(currencyAmount) === 0 && Number(currencyAmount) % 10 !== 0) throw new CodeError({ message: 'invalid bet amount, 1/10hkx or 1/1usx', code: Code.INVALID_BET_AMOUNT });
-      if (numbers.length === 0) throw new CodeError({ message: 'invalid bet numbers', code: Code.INVALID_BET_NUMBERS });
+      const { numbers, currency, multipliers = 1 } = body;
+      const { userID } = params;
+      const currencyAmount = String(this.calculatorAmount({ numbers, currency }) * Number(multipliers));
+
+      // check input data
+      if (currency.toUpperCase() !== 'HKX' && currency.toUpperCase() !== 'USX') throw new CodeError({ message: 'invalid currency', code: Code.INVALID_CURRENCY });
+      if (numbers.length === 0) throw new CodeError({ message: 'invalid multipliers', code: Code.INVALID_MULTIPLIERS });
+      if (!Utils.isValidNumber(multipliers)) throw new CodeError({ message: 'invalid bet numbers', code: Code.INVALID_BET_NUMBERS });
       numbers.forEach((element) => {
         if (element.length !== 5 || !this.checkLottoNumberIsValid(element)) throw new CodeError({ message: 'invalid bet numbers', code: Code.INVALID_BET_NUMBERS });
       });
 
+      const assetID = await this.findOne({ key: `${currency.toUpperCase()}Address` });
+      // check user is exist
+      const findUser = await this.db.collection('User').findOne({ _id: new ObjectID(userID) });
+      if (!findUser) throw new CodeError({ message: 'user not found', code: Code.USER_NOT_FOUND });
+      const userModule = await this.getBot('User');
+      const balance = await userModule.getBalance({ address: findUser.address, symbol: currency });
+      if (new BigNumber(balance).lt(new BigNumber(currencyAmount))) throw new CodeError({ message: 'balance not enough', code: Code.BALANCE_NOT_ENOUGH });
+
+      // create user token
+      const response = await axios.post(`${this.config.microservice.keystone}/createToken`, {
+        apiKey: findUser.apiKey,
+        apiSecret: findUser.apiSecret,
+      });
+      const { code, token: userToken } = response.data;
+      if (code === undefined || code !== 0) throw new CodeError({ message: `remote api error(create user error: ${response.data.message})`, code: Code.REMOTE_API_ERROR });
+
+
+      // create LottoTicket
       const stageHeight = await Utils.getStageHeight();
       const nowTime = Math.floor(Date.now() / 1000);
-
       const lotto = await this.db.collection('LottoTicket').insertOne({
-        numbers, stageHeight, nowTime, type: '4+1', currency, currencyAmount,
+        numbers, stageHeight, nowTime, type: '4+1', currency, currencyAmount, trustStatus: 'pending',
       });
       const id = lotto.insertedId;
 
-      // save to trust
-      let response = await axios.post(`${this.config.microservice.trust}/asset`, {}, { headers: { token: this.token } });
-      if (response.data.code !== 0) {
-        if (response.data.code === 5) {
-          // renew token
-          const { serviceUserID, servicePassword } = this.config.base;
-          const { token, tokenSecret } = await this.loginKeystone({ userID: serviceUserID, password: servicePassword });
-          this.token = token;
-          this.tokenSecret = tokenSecret;
-        }
-        // retry
-        response = await this.sendRequest('post', `${this.config.microservice.trust}/asset`, {}, { headers: { token: this.token } }, 1);
-        if (response.data.code != 0) {
-          this.logger.log(`create trust error: ${response.data}`);
-          throw new CodeError({ message: `create trust error: ${response.data}`, code: Code.TRUST_ERROR });
-        }
-      }
+      // transfer currency
+      const transferRs = await userModule.transfer({
+        toAddress: assetID, assetID, amount: currencyAmount, token: userToken,
+      });
+      if (!transferRs.success) throw transferRs;
 
-      const { itemID } = response.data;
-      response = await this.sendRequest('post', `${this.config.microservice.trust}/asset/${itemID}/data`, {
-        data: {
-          '00id': id,
-          '00numbers': numbers,
-          '00stageHeight': stageHeight,
-          '00time': nowTime,
-          '00type': '4+1',
-          '00currency': currency,
-          '00currencyAmount': currencyAmount,
-        },
-      }, { headers: { token: this.token } }, 1);
-      if (response.data.code != 0) {
-        this.logger.log(`id(${id}) create trust error: ${response.data}`);
-        throw new CodeError({ message: `save trust error: ${response.data}`, code: Code.TRUST_ERROR });
-      }
-      const { lightTxHash } = response.data.receipt;
-      await this.db.collection('LottoTicket').updateOne({ _id: new ObjectID(id) }, { $set: { lightTxHash } }, { upsert: true });
+      // add lotto to user lottoList
+      await this.db.collection('User').updateOne({ _id: new ObjectID(userID) }, { $push: { lottoList: id } }).catch(async (e) => {
+        // renew token
+        const { serviceUserID, servicePassword } = this.config.base;
+        const { token, tokenSecret } = await this.loginKeystone({ userID: serviceUserID, password: servicePassword });
+        this.token = token;
+        this.tokenSecret = tokenSecret;
+
+        // transfer currency
+        const transferRs2 = await userModule.transfer({
+          toAddress: findUser.address, assetID, amount: currencyAmount, token: this.token,
+        });
+        if (!transferRs2.success) {
+          console.log(`\x1b[1m\x1b[31madd lotto to user lottoList error, error handle transfer currency error(userID: ${findUser.address}, assetID: ${assetID}, amount: ${currencyAmount})\x1b[0m\x1b[21m `);
+        }
+      });
+
+
+      // save to trust
+      axios.post(`${this.config.microservice.trust}/asset`, {}, { headers: { token: this.token } })
+        .then(async (trustResponse) => {
+          if (trustResponse.data.code !== 0) {
+            if (trustResponse.data.code === 5) {
+            // renew token
+              const { serviceUserID, servicePassword } = this.config.base;
+              const { token, tokenSecret } = await this.loginKeystone({ userID: serviceUserID, password: servicePassword });
+              this.token = token;
+              this.tokenSecret = tokenSecret;
+            }
+            // retry
+            const creatTrustResponse = await this.sendRequest('post', `${this.config.microservice.trust}/asset`, {}, { headers: { token: this.token } }, 1);
+            if (creatTrustResponse.data.code != 0) {
+              this.logger.log(`create trust error: ${JSON.stringify(creatTrustResponse.data)}`);
+              // update trust error
+              await this.db.collection('LottoTicket').updateOne({ _id: new ObjectID(id) }, { $set: { trustStatus: 'false' } });
+            }
+          }
+          const { itemID } = trustResponse.data;
+
+          const saveTrustResponse = await this.sendRequest('post', `${this.config.microservice.trust}/asset/${itemID}/data`, {
+            data: {
+              '00id': id,
+              '00numbers': numbers,
+              '00stageHeight': stageHeight,
+              '00time': nowTime,
+              '00type': '4+1',
+              '00currency': currency,
+              '00currencyAmount': currencyAmount,
+            },
+          }, { headers: { token: this.token } }, 1);
+          if (saveTrustResponse.data.code != 0) {
+            this.logger.log(`id(${id}) save trust(${itemID}) error: ${saveTrustResponse.data}`);
+            await this.db.collection('LottoTicket').updateOne({ _id: new ObjectID(id) }, { $set: { trustStatus: 'false' } });
+            throw new CodeError({ message: `save trust error: ${saveTrustResponse.data}`, code: Code.TRUST_ERROR });
+          }
+          const { lightTxHash } = saveTrustResponse.data.receipt;
+          await this.db.collection('LottoTicket').updateOne({ _id: new ObjectID(id) }, { $set: { lightTxHash, trustStatus: 'true' } });
+        });
 
       return {
         message: 'success',
@@ -337,8 +448,8 @@ class Lotto extends Bot {
   createKeystoneToken() {
     return new Promise((resolve, reject) => {
       const { serviceUserID, servicePassword } = this.config.base;
-      this.loginKeystone({ userID: serviceUserID, password: servicePassword }).then(({ token, tokenSecret }) => {
-        resolve({ token, tokenSecret });
+      this.loginKeystone({ userID: serviceUserID, password: servicePassword }).then(({ token, tokenSecret, address }) => {
+        resolve({ token, tokenSecret, address });
       }).catch(reject);
     });
   }
@@ -346,25 +457,23 @@ class Lotto extends Bot {
   reRegisterKeystoneUser() {
     return new Promise((resolve, reject) => {
       const { serviceUserID, servicePassword } = this.config.base;
-      console.log('serviceUserID, servicePassword:', serviceUserID, servicePassword);
-
       this.registerKeystone({ userID: serviceUserID, password: servicePassword })
         .then(async ({ address, apiKey, apiSecret }) => {
           await this.batch({
             ops: [
               {
                 type: 'put',
-                key: 'evidenceServiceAddress',
+                key: 'lottoServiceAddress',
                 value: address,
               },
               {
                 type: 'put',
-                key: 'evidenceServiceApiKey',
+                key: 'lottoServiceApiKey',
                 value: apiKey,
               },
               {
                 type: 'put',
-                key: 'evidenceServiceApiSecret',
+                key: 'lottoServiceApiSecret',
                 value: apiSecret,
               },
             ],
