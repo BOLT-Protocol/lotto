@@ -88,6 +88,7 @@ class User extends Bot {
     try {
       const { userID } = params;
 
+      if (!userID) throw new CodeError({ message: 'invalid input', code: Code.INVALID_INPUT });
       const findUser = await this.db.collection('User').aggregate([
         { $match: { _id: new ObjectID(userID) } },
         {
@@ -108,13 +109,16 @@ class User extends Bot {
         message: 'success',
         data: {
           balance,
+          currency: findUser[0].currency,
+          address: findUser[0].address,
+          apiSecret: findUser[0].apiSecret,
           LottoTickets: findUser[0].LottoTickets,
         },
         code: Code.SUCCESS,
       };
     } catch (e) {
       if (!Object.prototype.hasOwnProperty.call(e, 'success')) {
-        this.logger.trace(`register server error(${e.message})`);
+        this.logger.trace(`GetUserInfo server error(${e.message})`);
         return Promise.resolve({
           success: false,
           message: `server error(${e.message})`,

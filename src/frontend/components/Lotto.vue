@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import { Field, Button, Col, Row, RadioGroup, Radio, Divider, Notify, Loading, Overlay } from 'vant';
+import { Button, Col, Row, RadioGroup, Radio, Divider, Notify, Loading, Overlay } from 'vant';
 export default {
   data() {
     return {
@@ -74,7 +74,6 @@ export default {
       let that = this;
       const data = {
         currency: this.currency,
-        currencyAmount: this.currencyAmount,
         numbers: this.lottos.map((item, index) => {
             return item.map((item, index) => {
                 return item.value
@@ -82,23 +81,26 @@ export default {
         })
       }
       this.show = true;
-      this.$axios.post(`${this.config.ip}/lotto`, data)
+      this.$axios.post(`${this.config.ip}/lotto/${this.$route.params.userID}`, data)
         .then(function(res){
           if(res.data.code === "00000") {
-            that.$router.push({ path: `/receipt/${res.data.data.id}` })
+            that.$router.push({ path: `/ticket/${this.$route.params.userID}` })
           } else {
             let message = ''
-            let duration = 500
+            let duration = 1000
             that.show = false;
             switch (res.data.code) {
               case '10000':
-                message = '總額不對 每注金額為 1/10hkx or 1/1usx'
+                message = '總額不對 每注金額為 1/10HKX or 1/1USX'
                 break;
               case '10002':
                 message = '號碼有誤，請輸入 1~16 間的數字'
                 break;
               case '10001':
                 message = '選擇幣種不支援'
+                break;
+              case '10006':
+                message = '餘額不足'
                 break;
               default:
                 message = `伺服器錯誤！！(${JSON.stringify(res.data.message)})`
@@ -127,7 +129,6 @@ export default {
     }
   },
   components: {
-    Field,
     Button,
     Col, 
     Row,
