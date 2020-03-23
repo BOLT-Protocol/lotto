@@ -119,14 +119,14 @@ export default {
   border-width: 1px;
 }
 .field-dropdown-menu {
-  height: 40px ;
+  height: 58px ;
   margin-top: 3px;
 }
 .field-dropdown-menu > div > span > .van-ellipsis {
   display: none;
 }
 .field-dropdown-menu > div[role="button"] {
-  height: 80px;
+  height: 100px;
 }
 .van-dropdown-menu__title::after {
   top: -20px;
@@ -135,7 +135,7 @@ export default {
   border-color: transparent transparent currentColor currentColor;
 }
 .deposit-field {
-  height: 80px;
+  height: 100px;
 }
 .field-dropdown-menu > div > .van-dropdown-item--down {
   margin: 0px 50px;
@@ -143,17 +143,25 @@ export default {
 .field-dropdown-menu > div > div > .van-popup {
   margin-top: 40px;
   padding-top: 0px;
-  height: 465px;
+  height: 530px;
 }
 .field-dropdown-menu > div > div > .van-overlay {
   margin-top: 40px;
 }
 .deposit-field > div > div > input {
-  font-size: 45px;
+  font-size: 55px;
 }
 .field-dropdown-item > div > .van-popup > div > .van-cell__title {
-  font-size: 35px;
-  margin: 10px 0;
+  font-size: 45px;
+  margin: 15px 0;
+}
+.van-dropdown-item__option--active .van-dropdown-item__icon {
+  color: #1989fa;
+  font-size: 500%;
+  margin-top: 25px;
+}
+.field-dropdown-item > div > .van-popup > div > .van-cell__title {
+  flex-grow: 6;
 }
 </style>
 

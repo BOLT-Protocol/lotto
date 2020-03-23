@@ -1,7 +1,17 @@
 <template>
   <div class="drawn">
-    <center><h1 :style="{ fontSize: '300%' }">開獎</h1></center>
-    <center><h1 :style="{ fontSize: '200%' }">stageHeight: {{ parseInt(stageHeight || '0', 16) }}</h1></center>
+    <Row>
+      <Col span="8">
+        <span style="font-size: 300%;font-weight: bold;">XGuess</span><br>
+        <span style="font-size: 250%">區塊鏈競猜遊戲</span><br>
+      </Col>
+      <Col span="8">
+        <center><h1 :style="{ fontSize: '300%' }">兌獎頁</h1></center>
+      </Col>
+    </Row>
+    <span style="font-size: 250%">預測期數：No.{{ this.lottoIssue }}</span><br>
+    <span style="font-size: 250%">該期獎號：</span>
+    <center><h1 :style="{ fontSize: '200%' }"></h1></center>
     <Row gutter="50">
       <Col offset="1"></Col>
       <Col span="4" v-for="item in lottoNumbers">
@@ -43,6 +53,7 @@ export default {
       lottoNumbers: [],
       lottoSuperNumber: '',
       result: [],
+      lottoIssue: '',
       stageHeight: '',
       time: 0,
       currency: '',
@@ -62,28 +73,21 @@ export default {
       if (res.data.code === '10004') {
         that.show = true
       } else {
-        that.stageHeight = `0x${res.data.data.drawn.stageHeight}`
+        that.stageHeight = Number(res.data.data.ticketInfo.stageHeight)
         that.lottoNumbers = res.data.data.drawn.numbers
         that.lottoSuperNumber = res.data.data.drawn.superNumber
+        that.lottoIssue = res.data.data.drawn._id
         that.id = res.data.data.drawn._id
         that.result = res.data.data.result
       }
     })
-  },
-  computed: {
-    timeFormat: function() {
-      if (!this.time) return '0000-00-00 00:00:00'
-      const time = new Date(this.time * 1000).toISOString()
-      return `${time.slice(0, 10)} ${time.slice(11, 19)}`
-    }
   }
 };
 </script>
 
 <style>
 .drawn {
-  margin-right: 50px;
-  margin-left: 50px;
+  margin: 50px;
 }
 .numbers {
   color: #ffffff;

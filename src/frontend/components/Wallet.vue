@@ -1,9 +1,9 @@
 <template>
   <div class="wallet">
 
-    <Row style="height: 430px">
+    <Row style="height: 470px">
       <Col span="7">
-        <span :style="{ fontSize: '300%' }">XGuess</span>
+        <span :style="{ fontSize: '300%' }">XGuess</span><br>
         <span :style="{ fontSize: '130%' }">區塊鏈競猜遊戲卡</span>
 
         <div class="guess-rule">
@@ -20,7 +20,7 @@
         <div style="
             background: black;
             width: 2px;
-            height: 440px;
+            height: 480px;
             margin: 0 21px;
         "></div>
       </Col>
@@ -67,6 +67,7 @@
             height: 2px;
             margin: 10px 0px;
         "></div>
+
         <Row style="margin-top: 30px; line-height: 50px;">
           <Col span="11">
             <Row>
@@ -91,7 +92,7 @@
           </Col>
           <Col span="12">
             <span>下期開獎區塊：</span><br>
-            <span style="font-size: 24px; font-weight: bold;">期數 No.</span><br>
+            <span style="font-size: 20px; font-weight: bold;">期數 No.{{ this.nextLottoIssue }} <br>( 塊高 {{ this.drawnStageHeight }} )</span><br>
             <span>開獎倒數計時：</span><br>
             <span style="font-size: 24px; font-weight: bold;">
               <CountDown :time="time" format="還有 mm 分 ss 秒 開出獎號" style="font-size: 24px"></CountDown>
@@ -100,6 +101,7 @@
         </Row>
       </Col>
     </Row>
+
     <div style="
         background: black;
         width: 100%;
@@ -114,25 +116,27 @@
       <Col span="24" class="guess-item" v-for="(item, index) in LottoTickets">
         <Row>
           <Col span="8">
-            <span style="font-weight: bold;">遊戲期數： ????</span><br>
+            <span style="font-weight: bold;">遊戲期數：{{ item.lottoIssue }}</span><br>
             <span>預測單號： </span><br>
             <span style="font-weight: bold; font-size: 20px;">{{ item._id }}</span><br>
             <span>購買時間： </span><br>
             <span style="font-weight: bold;">{{ timeFormat(item.nowTime) }}</span><br>
           </Col>
-          <Col span="4">
+          <Col span="5">
             <span>預測獎號</span><br>
             <span v-for="(numbers, index) in item.numbers" style="font-size: 120%; font-weight: bold;">
               <span v-for="(number, index) in numbers">{{ number }} </span><br>
             </span>
           </Col>
-          <Col span="2">
+          <Col span="2" style="text-align: center">
             <span>倍率</span><br>
-            <span style="font-size: 120%; font-weight: bold;">{{ item.rate }}</span>
+            <span style="font-size: 120%; font-weight: bold;">{{ item.multipliers }}</span>
           </Col>
-          <Col span="10">
+          <Col span="9" style="padding-left: 30px;">
             <span>開獎倒數計時：</span><br>
-            <span>還有 xx 分 xx 秒 開出獎號</span><br>
+            <span>
+              <CountDown :time="item.time" format="還有 mm 分 ss 秒 開出獎號" style="font-size: 24px"></CountDown>
+            </span><br>
             <Row>
               <Col span="12">
                 <span>兌獎二維碼</span><br>
@@ -194,13 +198,16 @@ export default {
       email: '',
       ip: '',
       balance: '',
+      nowStageHeight: '',
+      drawnStageHeight: '',
       currency: '',
       address: '',
       apiSecret: '',
+      nextLottoIssue: '',
       LottoTickets: '',
       errorMsg: '找不到用戶',
       show: false,
-      time: 4 * 60 * 1000,
+      time: 10 * 15 * 1000,
       emailShow: false,
     };
   },
@@ -229,14 +236,28 @@ export default {
         return
       }
       that.balance = res.data.data.balance
+      that.multipliers = res.data.data.multipliers
       that.currency = res.data.data.currency
       that.address = res.data.data.address
+      that.nextLottoIssue = res.data.data.nextLottoIssue
       that.LottoTickets = res.data.data.LottoTickets
       that.apiSecret = res.data.data.apiSecret
       that.apiSecretRaw = res.data.data.apiSecret
+      that.nowStageHeight = res.data.data.nowStageHeight
+      that.drawnStageHeight = that.nowStageHeight + (100 - that.nowStageHeight % 100) + 100
+      that.time = (that.drawnStageHeight - that.nowStageHeight) * 15 * 1000
 
       for (let i = that.apiSecret.length - 1; i > 17; i--) {
         that.apiSecret = that.apiSecret.substr(0,i) + '*' + that.apiSecret.substr(i+1);
+      }
+
+      for (let i = 0; i < that.LottoTickets.length; i++) {
+        const stageHeight = that.LottoTickets[i].stageHeight
+        if (Number(that.drawnStageHeight) - Number(stageHeight) <= 200) {
+          that.LottoTickets[i].time = that.time
+        } else {
+          that.LottoTickets[i].time = 0
+        }
       }
     })
     .catch((e) => {
@@ -246,7 +267,7 @@ export default {
   },
   methods: {
     guessLink() {
-      window.open(`${this.config.ip}/#/guess/${this.$route.params.userID}`)
+      this.$router.push({ path: `/guess/${this.$route.params.userID}` })
     },
     mail() {
       this.emailShow = false;

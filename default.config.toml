@@ -46,6 +46,7 @@ pathname = [
   "get | /lotto | Bot.Lotto.GetLottoNumber",
   "get | /lotto/:id | Bot.Lotto.GetLottoTicket",
   "get | /drawn/:id | Bot.Lotto.DrawnLottoTicket",
+  "get | /lottoIssue | Bot.Lotto.GetLottoIssue",
 
   # user
   "post | /user/register | Bot.User.Register",
