@@ -11,26 +11,33 @@
     </Row>
     <span style="font-size: 250%">預測期數：No.{{ this.lottoIssue }}</span><br>
     <span style="font-size: 250%">該期獎號：</span>
+    <div v-if="show">
+      <center>
+        <CountDown :time="time" format="還有 mm 分 ss 秒 開出獎號" style="font-size: 50px;font-weight: bold; margin-top: 50px;"></CountDown>
+      </center>
+    </div>
     <center><h1 :style="{ fontSize: '200%' }"></h1></center>
-    <Row gutter="50">
-      <Col offset="1"></Col>
-      <Col span="4" v-for="item in lottoNumbers">
-        <center class="number blue-number"><h1>{{ item }}</h1></center>
-      </Col>
-      <Col span="5">
-        <center class="number red-number"><h1>{{ lottoSuperNumber }}</h1></center>
-      </Col>
-    </Row>
-    <center><h1 :style="{ fontSize: '250%' }">你的票券</h1></center>
-    <Row gutter="50" v-for="items in result">
-      <Col span="4" v-for="(item, index) in items.numbers">
-        <center class="number" :class="{ 'blue-number' : index < 4, 'red-number' : index === 4 }"><h1>{{ item }}</h1></center>
-      </Col>
-      <Col span="4">
-        <center><h1 :style="{ marginTop: '110px' }">{{ items.payoffType }}</h1></center>
-      </Col>
-    </Row>
-    <Overlay :show="show">
+    <div v-if="!show">
+      <Row gutter="50">
+        <Col offset="1"></Col>
+        <Col span="4" v-for="item in lottoNumbers">
+          <center class="number blue-number"><h1>{{ item }}</h1></center>
+        </Col>
+        <Col span="5">
+          <center class="number red-number"><h1>{{ lottoSuperNumber }}</h1></center>
+        </Col>
+      </Row>
+      <center><h1 :style="{ fontSize: '250%' }">你的票券</h1></center>
+      <Row gutter="50" v-for="items in result">
+        <Col span="4" v-for="(item, index) in items.numbers">
+          <center class="number" :class="{ 'blue-number' : index < 4, 'red-number' : index === 4 }"><h1>{{ item }}</h1></center>
+        </Col>
+        <Col span="4">
+          <center><h1 :style="{ marginTop: '110px' }">{{ items.payoffType }}</h1></center>
+        </Col>
+      </Row>
+    </div>
+    <!--<Overlay :show="show">
       <div class="wrapper" @click.stop @click="show = false">
         <div class="block">
           <center>
@@ -38,13 +45,13 @@
           </center>
         </div>
       </div>
-    </Overlay>
+    </Overlay>-->
   </div>
 </template>
 
 <script>
 import VueQrcode from '@chenfengyuan/vue-qrcode';
-import { Col, Row, Divider, Overlay } from 'vant';
+import { Col, Row, Divider, Overlay, CountDown } from 'vant';
 export default {
   data() {
     return {
@@ -66,13 +73,18 @@ export default {
     Row,
     Divider,
     Overlay,
+    CountDown,
   },
   mounted: function () {
     let that = this;
     this.$axios.get(`${this.config.ip}/drawn/${this.$route.params.id}`).then(function(res){
       if (res.data.code === '10004') {
         that.show = true
+        const nowStageHeight = Number(res.data.data.nowStageHeight)
+        const drawnStageHeight = Number(res.data.data.drawnStageHeight)
+        that.time = (drawnStageHeight - nowStageHeight) * 15 * 1000
       } else {
+        that.show = false
         that.stageHeight = Number(res.data.data.ticketInfo.stageHeight)
         that.lottoNumbers = res.data.data.drawn.numbers
         that.lottoSuperNumber = res.data.data.drawn.superNumber

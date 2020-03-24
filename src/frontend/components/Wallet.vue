@@ -140,7 +140,9 @@
             <Row>
               <Col span="12">
                 <span>兌獎二維碼</span><br>
-                <span><a :href="ip + '/#/drawn/' + item._id" target="_blank">前往兌獎頁</a></span>
+                <div class="drawn-link">
+                  <span @click="drawnLink(item._id)">前往兌獎頁</span>
+                </div>
               </Col>
               <Col span="12">
                 <VueQrcode :value="`${ip}/#/drawn/${item._id}`" :options="{ width: 150 }" style="margin-left: -5px;"></VueQrcode>
@@ -243,18 +245,19 @@ export default {
       that.LottoTickets = res.data.data.LottoTickets
       that.apiSecret = res.data.data.apiSecret
       that.apiSecretRaw = res.data.data.apiSecret
-      that.nowStageHeight = res.data.data.nowStageHeight
-      that.drawnStageHeight = that.nowStageHeight + (100 - that.nowStageHeight % 100) + 100
+      that.nowStageHeight = Number(res.data.data.nowStageHeight)
+      that.drawnStageHeight = that.nowStageHeight - (that.nowStageHeight % 100) + 200
       that.time = (that.drawnStageHeight - that.nowStageHeight) * 15 * 1000
 
       for (let i = that.apiSecret.length - 1; i > 17; i--) {
         that.apiSecret = that.apiSecret.substr(0,i) + '*' + that.apiSecret.substr(i+1);
       }
 
+      // calculator every LottoTickets time
       for (let i = 0; i < that.LottoTickets.length; i++) {
-        const stageHeight = that.LottoTickets[i].stageHeight
-        if (Number(that.drawnStageHeight) - Number(stageHeight) <= 200) {
-          that.LottoTickets[i].time = that.time
+        const ticketDrawnStageHeight = Number(that.LottoTickets[i].drawnStageHeight)
+        if (ticketDrawnStageHeight - that.nowStageHeight <= 200) {
+          that.LottoTickets[i].time = (ticketDrawnStageHeight - that.nowStageHeight) * 15 * 1000
         } else {
           that.LottoTickets[i].time = 0
         }
@@ -268,6 +271,9 @@ export default {
   methods: {
     guessLink() {
       this.$router.push({ path: `/guess/${this.$route.params.userID}` })
+    },
+    drawnLink(id) {
+      this.$router.push({ path: `/drawn/${id}` })
     },
     mail() {
       this.emailShow = false;
@@ -339,6 +345,11 @@ export default {
   width: 400px;
   padding: 20px;
   background-color: #fff;
+}
+.drawn-link {
+  color: blue;
+  text-decoration: underline;
+  margin-top: 60px;
 }
 </style>
 

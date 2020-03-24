@@ -187,9 +187,19 @@ class Lotto extends Bot {
 
       // create LottoTicket
       const stageHeight = await Utils.getStageHeight();
+      const drawnStageHeight = stageHeight - (stageHeight % 100) + 200;
       const nowTime = Math.floor(Date.now() / 1000);
       const lotto = await this.db.collection('LottoTicket').insertOne({
-        numbers, stageHeight, multipliers, nowTime, type: '4+1', currency, currencyAmount, lottoIssue: Utils.formateIssue(lottoIssue + 1), trustStatus: 'pending',
+        numbers,
+        stageHeight,
+        drawnStageHeight: Utils.formatStageHeight(drawnStageHeight.toString(16)),
+        multipliers,
+        nowTime,
+        type: '4+1',
+        currency,
+        currencyAmount,
+        lottoIssue: Utils.formateIssue(lottoIssue + 1),
+        trustStatus: 'pending',
       });
       const id = lotto.insertedId;
 
@@ -319,24 +329,32 @@ class Lotto extends Bot {
     if (!id) throw new CodeError({ message: 'invalid input', code: Code.INVALID_INPUT });
     const findLottoTicket = await this.db.collection('LottoTicket').findOne({ _id: new ObjectID(id) });
     if (!findLottoTicket) throw new CodeError({ message: 'lotto ticket not found', code: Code.LOTTO_TICKET_NOT_FOUND });
+    const drawnStageHeight = Number(findLottoTicket.drawnStageHeight);
 
-    // drawnStageHeight +5
-    const drawnStageHeight = (Number(findLottoTicket.stageHeight) - (Number(findLottoTicket.stageHeight) % 100) + 200).toString(16);
-    let findDBStageHeight = await this.db.collection('StageHeight').findOne({ stageHeight: drawnStageHeight });
+    let findDBStageHeight = await this.db.collection('StageHeight').findOne({ _id: 0 });
     if (!findDBStageHeight) {
       const stageHeight = await Utils.getStageHeight();
       const timestamp = Math.floor(Date.now() / 1000);
       await this.db.collection('StageHeight').updateOne({ _id: 0 }, { $set: { stageHeight, timestamp } }, { upsert: true });
       findDBStageHeight = { stageHeight };
     }
-    if (Number(findDBStageHeight.stageHeight) < Number(drawnStageHeight)) throw new CodeError({ message: 'lotto number not drawn yet', code: Code.LOTTO_NOT_DRAWN_YET });
+    if (Number(findDBStageHeight.stageHeight) < drawnStageHeight) {
+      return {
+        message: 'lotto number not drawn yet',
+        data: {
+          drawnStageHeight,
+          nowStageHeight: findDBStageHeight.stageHeight,
+        },
+        code: Code.LOTTO_NOT_DRAWN_YET,
+      };
+    }
 
     let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: Number(drawnStageHeight) }, { _id: 0 });
     if (!findDrawnLotto) {
       const { hash } = await Utils.getBlockHash(drawnStageHeight);
       const numbers = Utils.getLottoNumber(hash, 5);
       findDrawnLotto = {
-        stageHeight: Number(drawnStageHeight),
+        stageHeight: drawnStageHeight,
         superNumber: numbers[numbers.length - 1],
         numbers: numbers.splice(0, numbers.length - 1),
       };
@@ -364,6 +382,7 @@ class Lotto extends Bot {
     };
   }
 
+  // disable
   async GetLottoNumber({ query }) {
     let { amount = 5 } = query;
     if (amount >= 5) amount = 5;
@@ -413,7 +432,7 @@ class Lotto extends Bot {
     return {
       success: true,
       data: {
-        stageHeight: parseInt(findDBStageHeight.stageHeight, 16) + 100,
+        nowStageHeight: parseInt(findDBStageHeight.stageHeight, 16),
         lottoIssue: Utils.formateIssue(lottoIssue + 1),
         drawnLottoList,
       },

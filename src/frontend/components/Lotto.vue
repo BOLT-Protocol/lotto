@@ -187,8 +187,8 @@ export default {
       }
       that.drawnLottoList = res.data.data.drawnLottoList
       that.lottoIssue = res.data.data.lottoIssue
-      const nowStageHeight = Number(res.data.data.stageHeight)
-      const drawnStageHeight = nowStageHeight + (100 - nowStageHeight % 100) + 100
+      const nowStageHeight = Number(res.data.data.nowStageHeight)
+      const drawnStageHeight = nowStageHeight - (nowStageHeight % 100) + 200
       that.time = (drawnStageHeight - nowStageHeight) * 15 * 1000
     })
     .catch((e) => {

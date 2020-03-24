@@ -669,11 +669,11 @@ class Utils {
     try {
       const stageHeight = await this.getStageHeight();
       const timestamp = Math.floor(Date.now() / 1000);
-      await this.db.collection('StageHeight').updateOne({ _id: 0 }, { $set: { stageHeight, timestamp } }, { upsert: true });
+      await this.db.collection('StageHeight').updateOne({ _id: 0 }, { $set: { stageHeight, stageHeightInt: Number(stageHeight), timestamp } }, { upsert: true });
 
       // sync drawn list
       if (Number(stageHeight) % 100 === 0) {
-        let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight });
+        let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: Number(stageHeight) });
         if (!findDrawnLotto) {
           const { hash } = await Utils.getBlockHash(stageHeight);
           const numbers = this.getLottoNumber(hash, 5);
@@ -688,14 +688,14 @@ class Utils {
       }
       // fuzzyFindStageHeight
       const lastStageHeight = this.fuzzyFindStageHeight(stageHeight);
-      if (!lastStageHeight && lastStageHeight !== '') {
-        let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: lastStageHeight });
+      if (lastStageHeight && lastStageHeight !== '') {
+        let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: Number(lastStageHeight) });
         if (!findDrawnLotto) {
-          const { hash } = await Utils.getBlockHash(stageHeight.toString(16));
+          const { hash } = await Utils.getBlockHash(lastStageHeight.toString(16));
           const numbers = this.getLottoNumber(hash, 5);
           findDrawnLotto = {
             _id: await this.getLottoIssueCounter('DrawnLotto'),
-            stageHeight: Number(stageHeight),
+            stageHeight: Number(lastStageHeight),
             superNumber: numbers[numbers.length - 1],
             numbers: numbers.splice(0, numbers.length - 1),
           };

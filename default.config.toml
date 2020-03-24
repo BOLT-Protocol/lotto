@@ -43,7 +43,7 @@ pathname = [
 
   # lotto
   "post | /lotto/:userID | Bot.Lotto.BuyLottoTicket",
-  "get | /lotto | Bot.Lotto.GetLottoNumber",
+  # "get | /lotto | Bot.Lotto.GetLottoNumber",
   "get | /lotto/:id | Bot.Lotto.GetLottoTicket",
   "get | /drawn/:id | Bot.Lotto.DrawnLottoTicket",
   "get | /lottoIssue | Bot.Lotto.GetLottoIssue",
