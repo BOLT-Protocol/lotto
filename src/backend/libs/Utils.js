@@ -633,14 +633,87 @@ class Utils {
     }
   }
 
+  static formateIssue(int) {
+    const IssuesLength = 7;
+    let counterString = String(int);
+    const len = IssuesLength - 1 - (counterString.length - 1);
+    for (let i = 0; i < len; i++) {
+      counterString = `0${counterString}`;
+    }
+    return counterString;
+  }
+
+  static async getLottoIssueCounter() {
+    const result = await this.db.collection('Counter').findOneAndUpdate(
+      { _id: 'LottoIssue' },
+      { $inc: { counter: 1 } },
+      { returnNewDocument: true, upsert: true },
+    );
+    if (result.value) {
+      const { counter } = result.value;
+      return this.formateIssue(counter);
+    }
+    return '0000000';
+  }
+
+  static fuzzyFindStageHeight(stageHeight) {
+    const stageHeightN = Number(stageHeight);
+    let lastStageHeight = '';
+    for (let i = 1; i <= 10; i++) {
+      if ((stageHeightN - i) % 100 === 0)lastStageHeight = stageHeightN - i;
+    }
+    return lastStageHeight;
+  }
+
   static async syncStageHeight() {
     try {
       const stageHeight = await this.getStageHeight();
       const timestamp = Math.floor(Date.now() / 1000);
-      await this.db.collection('StageHeight').updateOne({ _id: 0 }, { $set: { stageHeight, timestamp } }, { upsert: true });
+      await this.db.collection('StageHeight').updateOne({ _id: 0 }, { $set: { stageHeight, stageHeightInt: Number(stageHeight), timestamp } }, { upsert: true });
+
+      // sync drawn list
+      if (Number(stageHeight) % 100 === 0) {
+        let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: Number(stageHeight) });
+        if (!findDrawnLotto) {
+          const { hash } = await Utils.getBlockHash(stageHeight);
+          const numbers = this.getLottoNumber(hash, 5);
+          findDrawnLotto = {
+            _id: await this.getLottoIssueCounter(),
+            stageHeight: Number(stageHeight),
+            superNumber: numbers[numbers.length - 1],
+            numbers: numbers.splice(0, numbers.length - 1),
+          };
+          await this.db.collection('DrawnLotto').insertOne(findDrawnLotto);
+        }
+      }
+      // fuzzyFindStageHeight
+      const lastStageHeight = this.fuzzyFindStageHeight(stageHeight);
+      if (lastStageHeight && lastStageHeight !== '') {
+        let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: Number(lastStageHeight) });
+        if (!findDrawnLotto) {
+          const { hash } = await Utils.getBlockHash(lastStageHeight.toString(16));
+          const numbers = this.getLottoNumber(hash, 5);
+          findDrawnLotto = {
+            _id: await this.getLottoIssueCounter('DrawnLotto'),
+            stageHeight: Number(lastStageHeight),
+            superNumber: numbers[numbers.length - 1],
+            numbers: numbers.splice(0, numbers.length - 1),
+          };
+          await this.db.collection('DrawnLotto').insertOne(findDrawnLotto);
+        }
+      }
     } catch (e) {
       console.log('db e:', e.message);
     }
+  }
+
+  static getLottoNumber(hash, number) {
+    const result = [];
+    for (let i = hash.length - 1; i >= 0; i--) {
+      result.push(parseInt(hash[i], 16));
+      if (result.length >= number) break;
+    }
+    return result;
   }
 
   static isValidNumber(num) {

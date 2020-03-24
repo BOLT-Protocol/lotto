@@ -88,6 +88,7 @@ class User extends Bot {
     try {
       const { userID } = params;
 
+      if (!userID) throw new CodeError({ message: 'invalid input', code: Code.INVALID_INPUT });
       const findUser = await this.db.collection('User').aggregate([
         { $match: { _id: new ObjectID(userID) } },
         {
@@ -102,19 +103,36 @@ class User extends Bot {
 
       if (findUser.length === 0 || !findUser[0]) throw new CodeError({ message: 'user not found', code: Code.USER_NOT_FOUND });
       const balance = await this.getBalance({ address: findUser[0].address, symbol: findUser[0].currency });
+      let findDBStageHeight = await this.db.collection('StageHeight').findOne({ _id: 0 });
+      if (!findDBStageHeight) {
+        const stageHeight = await Utils.getStageHeight();
+        const timestamp = Math.floor(Date.now() / 1000);
+        await this.db.collection('StageHeight').updateOne({ _id: 0 }, { $set: { stageHeight, timestamp } }, { upsert: true });
+        findDBStageHeight = { stageHeight };
+      }
+
+      let lottoIssue = '0000000';
+      const findLottoIssue = await this.db.collection('Counter').findOne({ _id: 'LottoIssue' });
+      if (findLottoIssue)lottoIssue = findLottoIssue.counter;
 
       return {
         success: true,
         message: 'success',
         data: {
           balance,
+          multipliers: findUser[0].multipliers,
+          currency: findUser[0].currency,
+          address: findUser[0].address,
+          apiSecret: findUser[0].apiSecret,
+          nowStageHeight: parseInt(findDBStageHeight.stageHeight, 16),
+          nextLottoIssue: Utils.formateIssue(lottoIssue + 1),
           LottoTickets: findUser[0].LottoTickets,
         },
         code: Code.SUCCESS,
       };
     } catch (e) {
       if (!Object.prototype.hasOwnProperty.call(e, 'success')) {
-        this.logger.trace(`register server error(${e.message})`);
+        this.logger.trace(`GetUserInfo server error(${e.message})`);
         return Promise.resolve({
           success: false,
           message: `server error(${e.message})`,
