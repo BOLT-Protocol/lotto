@@ -186,12 +186,14 @@ class Lotto extends Bot {
       if (findLottoIssue)lottoIssue = findLottoIssue.counter;
 
       // create LottoTicket
-      const stageHeight = await Utils.getStageHeight();
-      const drawnStageHeight = stageHeight - (stageHeight % 100) + 200;
+      const nowStageHeight = await Utils.getStageHeight();
+      const buyStageHeight = (Number(nowStageHeight) + 10) - ((Number(nowStageHeight) + 10) % 50) + 50;
+      const drawnStageHeight = buyStageHeight + 20;
       const nowTime = Math.floor(Date.now() / 1000);
       const lotto = await this.db.collection('LottoTicket').insertOne({
         numbers,
-        stageHeight,
+        nowStageHeight,
+        buyStageHeight,
         drawnStageHeight: Utils.formatStageHeight(drawnStageHeight.toString(16)),
         multipliers,
         nowTime,
@@ -252,7 +254,8 @@ class Lotto extends Bot {
             data: {
               '00id': id,
               '00numbers': numbers,
-              '00stageHeight': stageHeight,
+              '00nowStageHeight': nowStageHeight,
+              '00buyStageHeight': buyStageHeight,
               '00time': nowTime,
               '00type': '4+1',
               '00currency': currency,
@@ -351,7 +354,7 @@ class Lotto extends Bot {
 
     let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: Number(drawnStageHeight) }, { _id: 0 });
     if (!findDrawnLotto) {
-      const { hash } = await Utils.getBlockHash(drawnStageHeight);
+      const { hash } = await Utils.getBlockHash(Utils.formatStageHeight(drawnStageHeight.toString(16)));
       const numbers = Utils.getLottoNumber(hash, 5);
       findDrawnLotto = {
         stageHeight: drawnStageHeight,
