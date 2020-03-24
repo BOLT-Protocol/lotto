@@ -124,7 +124,7 @@
           </Col>
           <Col span="5">
             <span>預測獎號</span><br>
-            <span v-for="(numbers, index) in item.numbers" style="font-size: 120%; font-weight: bold;">
+            <span v-for="(numbers, index) in item.numbers" style="font-size: 110%; font-weight: bold;">
               <span v-for="(number, index) in numbers">{{ number }} </span><br>
             </span>
           </Col>
@@ -246,7 +246,8 @@ export default {
       that.apiSecret = res.data.data.apiSecret
       that.apiSecretRaw = res.data.data.apiSecret
       that.nowStageHeight = Number(res.data.data.nowStageHeight)
-      that.drawnStageHeight = that.nowStageHeight - (that.nowStageHeight % 100) + 200
+      const buyStageHeight = (that.nowStageHeight + 10) - ((that.nowStageHeight + 10) % 50) + 50
+      that.drawnStageHeight = buyStageHeight + 20;
       that.time = (that.drawnStageHeight - that.nowStageHeight) * 15 * 1000
 
       for (let i = that.apiSecret.length - 1; i > 17; i--) {
@@ -256,7 +257,7 @@ export default {
       // calculator every LottoTickets time
       for (let i = 0; i < that.LottoTickets.length; i++) {
         const ticketDrawnStageHeight = Number(that.LottoTickets[i].drawnStageHeight)
-        if (ticketDrawnStageHeight - that.nowStageHeight <= 200) {
+        if (ticketDrawnStageHeight - that.nowStageHeight > 0) {
           that.LottoTickets[i].time = (ticketDrawnStageHeight - that.nowStageHeight) * 15 * 1000
         } else {
           that.LottoTickets[i].time = 0
@@ -341,7 +342,6 @@ export default {
 }
 .mail-block {
   font-size: 150%;
-  margin-top: -800px;
   width: 400px;
   padding: 20px;
   background-color: #fff;

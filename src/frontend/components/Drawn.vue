@@ -61,7 +61,6 @@ export default {
       lottoSuperNumber: '',
       result: [],
       lottoIssue: '',
-      stageHeight: '',
       time: 0,
       currency: '',
       currencyAmount: '',
@@ -85,7 +84,6 @@ export default {
         that.time = (drawnStageHeight - nowStageHeight) * 15 * 1000
       } else {
         that.show = false
-        that.stageHeight = Number(res.data.data.ticketInfo.stageHeight)
         that.lottoNumbers = res.data.data.drawn.numbers
         that.lottoSuperNumber = res.data.data.drawn.superNumber
         that.lottoIssue = res.data.data.drawn._id
