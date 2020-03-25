@@ -157,7 +157,6 @@ class User extends Bot {
       const content = `
     親愛的顧客您好:<br>
         感謝您使用 XGuess 遊戲卡，提醒您於活動期限內把握時機，即時參與遊戲！<br>
-    發卡店家：TideBit 柯士甸道店<br>
     發售面額：${findUser.totalAmount}${findUser.currency}<br>
     <br>
     <a href="https://xguess.boltchain.io/#/ticket/${userID}">查看我的遊戲卡</a><br>
