@@ -357,6 +357,7 @@ class Lotto extends Bot {
       const { hash } = await Utils.getBlockHash(Utils.formatStageHeight(drawnStageHeight.toString(16)));
       const numbers = Utils.getLottoNumber(hash, 5);
       findDrawnLotto = {
+        _id: await this.getLottoIssueCounter(),
         stageHeight: drawnStageHeight,
         superNumber: numbers[numbers.length - 1],
         numbers: numbers.splice(0, numbers.length - 1),
@@ -391,12 +392,12 @@ class Lotto extends Bot {
     if (amount >= 5) amount = 5;
     const stageHeight = await Utils.getStageHeight();
 
-    let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight });
+    let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: Number(stageHeight) });
     if (!findDrawnLotto) {
       const { hash } = await Utils.getBlockHash(stageHeight);
       const numbers = Utils.getLottoNumber(hash, amount);
-
       findDrawnLotto = {
+        _id: await this.getLottoIssueCounter(),
         stageHeight,
         superNumber: numbers[numbers.length - 1],
         numbers: numbers.splice(0, numbers.length - 1),
