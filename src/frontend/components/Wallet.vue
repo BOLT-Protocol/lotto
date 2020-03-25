@@ -4,7 +4,7 @@
     <Row style="height: 470px">
       <Col span="7">
         <span :style="{ fontSize: '300%' }">XGuess</span><br>
-        <span :style="{ fontSize: '130%' }">區塊鏈競猜遊戲卡</span>
+        <span :style="{ fontSize: '130%' }">區塊競猜遊戲卡</span>
 
         <div class="guess-rule">
         [遊戲規則]<br>
@@ -79,7 +79,7 @@
               </Col>
               <Col span="12">
                 <div style="text-align: center">
-                  <span style="font-size: 30px;">還可投注</span><br>
+                  <span style="font-size: 30px;">還可競猜</span><br>
                   <span style="font-size: 30px;font-weight: bold;">{{ unit }} 單位</span>
                 </div>
               </Col>

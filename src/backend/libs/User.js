@@ -153,7 +153,7 @@ class User extends Bot {
       if (!findUser) throw new CodeError({ message: 'user not found', code: Code.USER_NOT_FOUND });
 
       const mailer = await this.getBot('Mailer');
-      const subject = '<XGuess> 您的區塊鏈遊戲卡';
+      const subject = '<XGuess> 您的區塊遊戲卡';
       const content = `
     親愛的顧客您好:<br>
         感謝您使用 XGuess 遊戲卡，提醒您於活動期限內把握時機，即時參與遊戲！<br>

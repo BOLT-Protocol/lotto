@@ -3,7 +3,7 @@
     <Row>
       <Col span="12">
         <span style="font-size: 400%; font-weight: bold;">XGuess</span><br>
-        <span style="font-size: 180%">區塊鏈競猜遊戲卡</span>
+        <span style="font-size: 180%">區塊競猜遊戲卡</span>
 
         <div class="guess-rule">
           [歷史獎號] <a href="">Boltchain 存證</a><br>
@@ -35,7 +35,7 @@
     "></div>
 
     <span style="font-size: 400%; font-weight: bold; margin-top: 20px">預測期數 No.{{ this.lottoIssue }}</span><br>
-    <span style="font-size: 200%;">* 可預測期數為以太坊區塊尾數為 00 的下一百個區塊數字</span><br>
+    <span style="font-size: 200%;">* 可預測期數為以太坊 15 分後將確認之區塊(50 個區塊為一期)</span><br>
     <Row gutter="20" v-for="(item1, index1) in lottos">
       <div style="margin-top: 10px;"></div>
         <Col span="24" v-for="(item2, index2) in item1">
