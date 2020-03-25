@@ -50,7 +50,7 @@
                 <span>你的私鑰：</span>
               </Col>
               <Col span="10">
-                <Button round block class="copy" type="info" native-type="submit" :style="{ fontSize: '90%', height: '50px' }" @click="copy()">
+                <Button disabled round block class="copy" type="info" native-type="submit" :style="{ fontSize: '90%', height: '50px' }" @click="copy()">
                   複製
                 </Button>
               </Col>

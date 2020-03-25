@@ -660,7 +660,7 @@ class Utils {
     const stageHeightN = Number(stageHeight);
     let lastStageHeight = '';
     for (let i = 1; i <= 10; i++) {
-      if ((stageHeightN - i) % 100 === 0)lastStageHeight = stageHeightN - i;
+      if ((stageHeightN - i) % 50 === 0)lastStageHeight = stageHeightN - i;
     }
     return lastStageHeight;
   }
@@ -672,7 +672,7 @@ class Utils {
       await this.db.collection('StageHeight').updateOne({ _id: 0 }, { $set: { stageHeight, stageHeightInt: Number(stageHeight), timestamp } }, { upsert: true });
 
       // sync drawn list
-      if (Number(stageHeight) % 100 === 0) {
+      if (Number(stageHeight) % 50 === 0) {
         let findDrawnLotto = await this.db.collection('DrawnLotto').findOne({ stageHeight: Number(stageHeight) });
         if (!findDrawnLotto) {
           const { hash } = await Utils.getBlockHash(stageHeight);
