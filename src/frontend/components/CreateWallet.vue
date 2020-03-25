@@ -13,7 +13,7 @@
       </Col>
     </Row>
     <div style="margin-top: 20px;">
-      <Button round block type="info" native-type="submit" :style="{ fontSize: '300%', height: '100px' }" @click="onSubmit(lottos)">
+      <Button round block type="info" native-type="submit" :style="{ fontSize: '300%', height: '100px' }" @click="onSubmit()">
         確認送出
       </Button>
     </div>
