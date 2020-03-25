@@ -3,9 +3,9 @@
 
     親愛的客戶您好：<br>
     <br>
-    感謝您使用 XGuess 易投注卡，您的易投注卡錢包位址如下，請掃碼使用。<br>
+    感謝您使用 XGuess 區塊遊戲卡，您的遊戲卡位址如下，請掃碼使用。<br>
     <br>
-    易投注錢包：{{ this.config.address }}
+    遊戲卡錢包：{{ this.config.address }}
 
     <Row style="position: relative;">
       <Col span="6" offset="6">

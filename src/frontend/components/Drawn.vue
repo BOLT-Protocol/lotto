@@ -3,7 +3,7 @@
     <Row>
       <Col span="8">
         <span style="font-size: 300%;font-weight: bold;">XGuess</span><br>
-        <span style="font-size: 250%">區塊鏈競猜遊戲</span><br>
+        <span style="font-size: 250%">區塊競猜遊戲</span><br>
       </Col>
       <Col span="8">
         <center><h1 :style="{ fontSize: '300%' }">兌獎頁</h1></center>
