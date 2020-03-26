@@ -187,12 +187,30 @@ class User extends Bot {
   async transfer({
     toAddress, assetID, amount, token,
   }) {
-    const response = await axios.post(`${this.config.microservice.keychain}/sign`, {
+    let response = await axios.post(`${this.config.microservice.keychain}/sign`, {
       to: toAddress,
       assetID,
       value: String(amount),
     }, { headers: { token } });
-    const { code } = response.data;
+    let { code } = response.data;
+    if (code === 5) {
+      // renew token
+      const { serviceUserID, servicePassword } = this.config.base;
+      const lottoModule = await this.getBot('Lotto');
+      const loginResponse = await lottoModule.loginKeystone({ userID: serviceUserID, password: servicePassword });
+      await this.write({
+        key: 'lottoServiceToken',
+        value: loginResponse.token,
+      });
+
+      // reTransfer again
+      response = await axios.post(`${this.config.microservice.keychain}/sign`, {
+        to: toAddress,
+        assetID,
+        value: String(amount),
+      }, { headers: { token } });
+      code = response.data.code;
+    }
     if (code === undefined || code !== 0) throw new CodeError({ message: `remote api error(create user error: ${response.data.message})`, code: Code.REMOTE_API_ERROR });
     return {
       success: true,
