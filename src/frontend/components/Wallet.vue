@@ -74,7 +74,7 @@
               <Col span="12">
                 <div style="text-align: center">
                   <span style="font-size: 30px;">票卡餘額</span><br>
-                  <span style="font-size: 30px;font-weight: bold;">{{ this.balance }} {{ this.currency }}</span>
+                  <span style="font-size: 30px;font-weight: bold;">{{ this.balance }} {{ this.currencySymbol }}</span>
                 </div>
               </Col>
               <Col span="12">
@@ -202,7 +202,7 @@ export default {
       balance: '',
       nowStageHeight: '',
       drawnStageHeight: '',
-      currency: '',
+      currencySymbol: '',
       address: '',
       apiSecret: '',
       nextLottoIssue: '',
@@ -225,7 +225,7 @@ export default {
   },
   computed: {
     unit: function() {
-      if (this.currency === 'HKX') return Number(this.balance) / 10
+      if (this.currencySymbol === 'HKX') return Number(this.balance) / 10
       return this.balance
     }
   },
@@ -239,7 +239,7 @@ export default {
       }
       that.balance = res.data.data.balance
       that.multipliers = res.data.data.multipliers
-      that.currency = res.data.data.currency
+      that.currencySymbol = res.data.data.currencySymbol
       that.address = res.data.data.address
       that.nextLottoIssue = res.data.data.nextLottoIssue
       that.LottoTickets = res.data.data.LottoTickets
@@ -271,7 +271,7 @@ export default {
   },
   methods: {
     guessLink() {
-      this.$router.push({ path: `/guess/${this.$route.params.userID}` })
+      this.$router.push({ path: `/guess/${this.$route.params.userID}?symbol=${this.currencySymbol}` })
     },
     drawnLink(id) {
       this.$router.push({ path: `/drawn/${id}` })

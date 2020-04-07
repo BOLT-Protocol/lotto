@@ -10,12 +10,27 @@ class User extends Bot {
   constructor() {
     super();
     this.name = 'User';
+    this.lockQueue = [1];
+    this.lockTimeout = -1;
   }
 
   init({
     config, database, logger, i18n,
   }) {
     this.db = database.mongodb;
+
+    // check lock time out
+    setInterval((() => {
+      if (this.lockTimeout <= 0 && this.lockTimeout !== -1) {
+        // ols session is expired
+        this.lockQueue.shift();
+        this.lockQueue.push(1);
+        this.lockTimeout = -1;
+      }
+
+      if (this.lockTimeout !== -1) this.lockTimeout -= 1000;
+    }), 1000);
+
     return super.init({
       config, database, logger, i18n,
     }).then(async () => {
@@ -25,17 +40,36 @@ class User extends Bot {
     });
   }
 
+  async CheckPagePool({ ctx }) {
+    if (!ctx.session.sessionID) {
+      const id = this.lockQueue.shift();
+      ctx.session.sessionID = id;
+      if (!id) {
+        // other connection is not close
+        return Promise.resolve({
+          success: false,
+          message: 'server error(page lock)',
+          data: {},
+          code: Code.SERVER_ERROR,
+        });
+      }
+      // set timeout
+      this.lockTimeout = 16 * 15 * 1000 + 5 * 1000;
+    }
+    return Promise.resolve({
+      success: true,
+      message: 'success',
+      data: {},
+      code: Code.SUCCESS,
+    });
+  }
 
-  async Register({ body }) {
+
+  async Register() {
     try {
-      const { amount, currency } = body;
-      if (!Utils.isValidNumber(amount) || (currency !== 'USX' && currency !== 'HKX')) throw new CodeError({ message: 'invalid input', code: Code.INVALID_INPUT });
-      const assetAddress = await this.findOne({ key: `${currency}Address` });
-      if (!assetAddress) throw new CodeError({ message: `currency(${currency}) not found`, code: Code.CURRENCY_NOT_FOUND });
-
       // create by keystone
       const url = `${this.config.microservice.keystone}/register`;
-      const response = await axios.post(url, {
+      let response = await axios.post(url, {
         userID: Utils.randomStr(16),
         password: Utils.randomStr(16),
         profile: {
@@ -43,22 +77,50 @@ class User extends Bot {
         },
       });
 
-      const { code, profile } = response.data;
+      let { code, profile } = response.data;
+      if (code === 5) {
+      // renew token
+        const { serviceUserID, servicePassword } = this.config.base;
+        const lottoModule = await this.getBot('Lotto');
+        const loginResponse = await lottoModule.loginKeystone({ userID: serviceUserID, password: servicePassword });
+        await this.write({
+          key: 'lottoServiceToken',
+          value: loginResponse.token,
+        });
+
+        // register again
+        response = await axios.post(url, {
+          userID: Utils.randomStr(16),
+          password: Utils.randomStr(16),
+          profile: {
+            name: Utils.randomStr(16),
+          },
+        });
+        code = response.data.code;
+      }
       if (code === undefined || code !== 0) throw new CodeError({ message: `remote api error(create user error: ${response.data.message})`, code: Code.REMOTE_API_ERROR });
+
       const { address } = profile;
-
-      // transfer currency to user address
-      const transferRs = await this.transfer({
-        toAddress: address, assetID: assetAddress, amount, token: this.lottoToken,
-      });
-      if (!transferRs.success) throw transferRs;
-
       const user = await this.db.collection('User').insertOne({
         apiKey: profile.apiKey,
         apiSecret: profile.apiSecret,
-        address: profile.address,
-        currency,
-        totalAmount: String(amount),
+        address,
+      });
+
+      this.config.socket.on('depositing', async (msg) => {
+        if (msg.success) this.config.io.emit('depositing', { success: true });
+      });
+
+      this.config.socket.emit('createDeposit', { type: 'create', data: { address } });
+      this.config.socket.on('createDeposit', async (msg) => {
+        if (msg.success) {
+          await this.db.collection('User').updateOne({ _id: new ObjectID(user.insertedId) }, { $set: { currencySymbol: msg.assetSymbol, currencyID: msg.assetID } });
+          this.config.io.emit('checkDeposit', {
+            success: true,
+            amount: msg.amount,
+            address,
+          });
+        }
       });
 
       return {
@@ -66,7 +128,7 @@ class User extends Bot {
         message: 'success',
         data: {
           userID: user.insertedId,
-          address: profile.address,
+          remittanceAddress: this.config.blockchain.watchWallet,
         },
         code: Code.SUCCESS,
       };
@@ -102,7 +164,10 @@ class User extends Bot {
       ]).toArray();
 
       if (findUser.length === 0 || !findUser[0]) throw new CodeError({ message: 'user not found', code: Code.USER_NOT_FOUND });
-      const balance = await this.getBalance({ address: findUser[0].address, symbol: findUser[0].currency });
+      const balance = await this.getBalance({
+        address: findUser[0].address,
+        assetID: findUser[0].currencyID,
+      });
       let findDBStageHeight = await this.db.collection('StageHeight').findOne({ _id: 0 });
       if (!findDBStageHeight) {
         const stageHeight = await Utils.getStageHeight();
@@ -121,7 +186,7 @@ class User extends Bot {
         data: {
           balance,
           multipliers: findUser[0].multipliers,
-          currency: findUser[0].currency,
+          currencySymbol: findUser[0].currencySymbol,
           address: findUser[0].address,
           apiSecret: findUser[0].apiSecret,
           nowStageHeight: parseInt(findDBStageHeight.stageHeight, 16),
@@ -217,8 +282,7 @@ class User extends Bot {
     };
   }
 
-  async getBalance({ address, symbol }) {
-    const assetID = await this.findOne({ key: `${symbol.toUpperCase()}Address` });
+  async getBalance({ address, assetID }) {
     const response = await axios.get(`${this.config.microservice.keychain}/balance?address=${address}&assetID=${assetID}`);
     return response.data.balance;
   }

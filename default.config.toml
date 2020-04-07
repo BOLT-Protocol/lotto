@@ -9,8 +9,12 @@ debug = false
 serviceUserID = "lotto"
 servicePassword = "P@ssw0rd"
 
+[socket]
+socket_host = "http://127.0.0.1"
+
 [blockchain]
 type = "ethereum"
+watchWallet = "0xacE258f5F6AB1fa6f5730Df066f8514976081850"
 
 [database]
 protocol = "mongodb"
@@ -40,6 +44,7 @@ currency = "http://127.0.0.1:3333"
 [api]
 pathname = [
   "get | /,/version | Static.Utils.readPackageInfo",
+  "get | /check | Bot.User.CheckPagePool",
 
   # lotto
   "post | /lotto/:userID | Bot.Lotto.BuyLottoTicket",

@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import Axios from 'axios';
+import VueSocketIO from 'vue-socket.io';
 import App from './App.vue';
 import 'vant/lib/index.css';
 
@@ -14,12 +15,20 @@ import WalletReceipt from './components/WalletReceipt.vue';
 import Wallet from './components/Wallet.vue';
 
 Vue.use(VueRouter);
+Axios.defaults.withCredentials = true;
 Vue.prototype.$axios = Axios;
 Vue.prototype.config = {
   ip: process.env.DOMAIN || '',
   address: window.address,
   amount: window.amount,
 };
+
+Vue.use(new VueSocketIO({
+  debug: false,
+  connection: process.env.DOMAIN || '',
+  vuex: {
+  },
+}));
 
 const routes = [
   {

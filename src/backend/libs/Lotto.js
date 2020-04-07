@@ -141,6 +141,12 @@ class Lotto extends Bot {
   }
 
   calculatorAmount({ numbers, currency }) {
+    if (currency.toUpperCase() === 'TWX') {
+      return numbers.length * 0.00001;
+    }
+    if (currency.toUpperCase() === 'ETH') {
+      return numbers.length * 0.00001;
+    }
     if (currency.toUpperCase() === 'USX') {
       return numbers.length * 1;
     }
@@ -151,21 +157,30 @@ class Lotto extends Bot {
     return 0;
   }
 
+  async getAssetID({ symbol }) {
+    let assetID = await this.findOne({ key: `${symbol.toUpperCase()}Address` });
+    if (!assetID && symbol.toUpperCase() === 'TWX') { assetID = '0x894A3eb448B686C6E24c2D02AA278b128B47f925'; }
+    return assetID;
+  }
+
   async BuyLottoTicket({ body, params }) {
     try {
-      const { numbers, currency, multipliers = 1 } = body;
+      const {
+        numbers, currency, multipliers = 1,
+      } = body;
       const { userID } = params;
       const currencyAmount = String(this.calculatorAmount({ numbers, currency }) * Number(multipliers));
 
       // check input data
-      if (currency.toUpperCase() !== 'HKX' && currency.toUpperCase() !== 'USX') throw new CodeError({ message: 'invalid currency', code: Code.INVALID_CURRENCY });
+      if (currency.toUpperCase() !== 'HKX' && currency.toUpperCase() !== 'USX' && currency.toUpperCase() !== 'TWX' && currency.toUpperCase() !== 'ETH') throw new CodeError({ message: 'invalid currency', code: Code.INVALID_CURRENCY });
       if (numbers.length === 0) throw new CodeError({ message: 'invalid multipliers', code: Code.INVALID_MULTIPLIERS });
       if (!Utils.isValidNumber(multipliers)) throw new CodeError({ message: 'invalid bet numbers', code: Code.INVALID_BET_NUMBERS });
       numbers.forEach((element) => {
         if (element.length !== 5 || !this.checkLottoNumberIsValid(element)) throw new CodeError({ message: 'invalid bet numbers', code: Code.INVALID_BET_NUMBERS });
       });
 
-      const assetID = await this.findOne({ key: `${currency.toUpperCase()}Address` });
+      let assetID = await this.findOne({ key: `${currency.toUpperCase()}Address` });
+      if (!assetID) assetID = await this.getAssetID({ symbol: currency });
       // check user is exist
       const findUser = await this.db.collection('User').findOne({ _id: new ObjectID(userID) });
       if (!findUser) throw new CodeError({ message: 'user not found', code: Code.USER_NOT_FOUND });
@@ -179,6 +194,26 @@ class Lotto extends Bot {
         apiSecret: findUser.apiSecret,
       });
       const { code, token: userToken } = response.data;
+      if (code === 5) {
+        // renew token
+        const { serviceUserID, servicePassword } = this.config.base;
+        const lottoModule = await this.getBot('Lotto');
+        const loginResponse = await lottoModule.loginKeystone({ userID: serviceUserID, password: servicePassword });
+        await this.write({
+          key: 'lottoServiceToken',
+          value: loginResponse.token,
+        });
+
+        // register again
+        response = await axios.post(url, {
+          userID: Utils.randomStr(16),
+          password: Utils.randomStr(16),
+          profile: {
+            name: Utils.randomStr(16),
+          },
+        });
+        code = response.data.code;
+      }
       if (code === undefined || code !== 0) throw new CodeError({ message: `remote api error(create user error: ${response.data.message})`, code: Code.REMOTE_API_ERROR });
 
       let lottoIssue = '0000000';
@@ -297,6 +332,7 @@ class Lotto extends Bot {
     const data = await this.db.collection('LottoTicket').findOne({ _id: new ObjectID(id) });
     if (!data) throw new CodeError({ message: 'lotto ticket not found', code: Code.LOTTO_TICKET_NOT_FOUND });
     return {
+      success: true,
       message: 'success',
       data,
       code: Code.SUCCESS,
@@ -343,6 +379,7 @@ class Lotto extends Bot {
     }
     if (Number(findDBStageHeight.stageHeight) < drawnStageHeight) {
       return {
+        success: false,
         message: 'lotto number not drawn yet',
         data: {
           drawnStageHeight,
@@ -374,6 +411,7 @@ class Lotto extends Bot {
 
 
     return {
+      success: true,
       message: 'success',
       data: {
         ticketInfo: {
