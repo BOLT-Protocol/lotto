@@ -13,8 +13,8 @@ const dvalue = require('dvalue');
 const Bot = require(path.resolve(__dirname, 'Bot.js'));
 const Utils = require(path.resolve(__dirname, 'Utils.js'));
 
-const defaultHTTP = [5566, 80];
-const defaultHTTPS = [7788, 443];
+const defaultHTTP = [9995];
+const defaultHTTPS = [9996, 443];
 
 class Receptor extends Bot {
   constructor() {
@@ -42,9 +42,18 @@ class Receptor extends Bot {
       .then((options) => {
         const sessionSecret = dvalue.randomID(24);
         const app = new koa();
+        app.keys = [sessionSecret];
         app.use(staticServe(this.config.base.static))
+          .use(session({
+            key: 'koa:session',
+            maxAge: 8 * 15 * 1000,
+            autoCommit: true,
+            renew: true,
+          }, app))
           .use(bodyParser({ multipart: true }))
-          .use(Utils.crossOrigin())
+          .use(Utils.crossOrigin({
+            credentials: true,
+          }))
           .use(this.router.routes())
           .use(this.router.allowedMethods());
         return this.listen({ options, callback: app.callback() });
@@ -99,7 +108,7 @@ class Receptor extends Bot {
         method: ctx.method,
         query: ctx.query,
         session: ctx.session,
-
+        ctx,
       };
       return operation(inputs)
         .then((rs) => {
@@ -123,6 +132,14 @@ class Receptor extends Bot {
   listenHttp({ port, options, callback }) {
     return new Promise((resolve, reject) => {
       this.serverHTTP = this.serverHTTP || http.createServer(options, callback);
+      this.config.io = require('socket.io')(this.serverHTTP);
+
+      const ioClient = require('socket.io-client');
+      this.config.socket = ioClient(this.config.socket.socket_host);
+      this.config.socket.on('disconnect', () => {
+        this.config.socket.open();
+      });
+
       this.serverHTTP.on('error', () => {
         const newPort = defaultHTTP.pop();
         if (defaultHTTP.length == 0) {

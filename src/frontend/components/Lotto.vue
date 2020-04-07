@@ -71,16 +71,6 @@
       </Col>
     </Row>
     <Row>
-      <Col span="3">
-        <h1 :style="{ fontSize: '300%' }">使用幣種</h1>
-      </Col>
-      <Col span="4">
-      <div style="margin-top: 40px;"></div>
-        <RadioGroup v-model="currency">
-          <Radio name="hkx" class="radio">hkx</Radio>
-          <Radio name="usx" class="radio">usx</Radio>
-        </RadioGroup>
-      </Col>
       <Col span="15">
         <h2 :style="{ fontSize: '300%' }">總額： {{ cost }} {{ currency }}</h2>
       </Col>
@@ -112,7 +102,7 @@ export default {
       lottoIssue: '',
       lottos: [[{value: 1}, {value: 1}, {value: 1}, {value: 1}, {value: 1}]],
       drawnLottoList: [],
-      currency: 'hkx',
+      currency: '',
       currencyAmount: 0,
       rate: 1,
     };
@@ -152,6 +142,10 @@ export default {
                 message = '餘額不足'
                 break;
               default:
+                if(res.data.message.indexOf('Insufficient balance') !== -1) {
+                  message = '餘額不足'
+                  break
+                }
                 message = `伺服器錯誤！！(${JSON.stringify(res.data.message)})`
                 duration = 1500
                 break;
@@ -179,6 +173,7 @@ export default {
   },
   mounted: function () {
     this.ip = this.config.ip
+    this.currency = this.$route.query.symbol
     let that = this;
     that.$axios.get(`${this.config.ip}/lottoIssue`).then(function(res){
       if(res.data.code !== '00000') {
@@ -212,7 +207,14 @@ export default {
   },
   computed: {
     cost: function() {
-      const currencyRate = this.currency === 'hkx' ? 10 : 1;
+      let currencyRate = 1;
+      if(this.currency.toLocaleLowerCase() === 'hkx') {
+        currencyRate = 10
+      } else if(this.currency.toLocaleLowerCase() === 'twx') {
+        currencyRate = 0.00001
+      } else if(this.currency.toLocaleLowerCase() === 'eth') {
+        currencyRate = 0.00001
+      }
       const amount = this.lottos.length
       this.currencyAmount = currencyRate * amount * this.rate
       return this.currencyAmount
