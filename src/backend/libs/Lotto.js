@@ -142,10 +142,10 @@ class Lotto extends Bot {
 
   calculatorAmount({ numbers, currency }) {
     if (currency.toUpperCase() === 'TWX') {
-      return numbers.length * 0.00001;
+      return numbers.length * 25;
     }
     if (currency.toUpperCase() === 'ETH') {
-      return numbers.length * 0.00001;
+      return numbers.length * 0.01;
     }
     if (currency.toUpperCase() === 'USX') {
       return numbers.length * 1;
