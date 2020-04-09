@@ -56,51 +56,6 @@ class Lotto extends Bot {
 
         return this;
       })
-      // .then(async () => {
-      //   // check usx, hkx currency is exist
-      //   const url = `${this.config.microservice.currency}/find`;
-      //   let response = await axios.post(url, { name: 'USX' });
-      //   const { code } = response.data;
-      //   if (code === undefined || code !== 0) {
-      //     this.logger.log('currency USX not found, creating');
-      //     // create USX currency
-      //     const currencyUrl = `${this.config.microservice.currency}/create`;
-      //     response = await axios.post(currencyUrl, {
-      //       name: 'USX',
-      //       symbol: 'USX',
-      //       totalSupply: '1000000000000000000',
-      //       opAccountAddress: this.address,
-      //     }, { headers: { token: this.token } });
-      //     if (response.data.code === undefined || response.data.code !== 0) throw new CodeError({ code: 9999, message: `create USX currency error: ${JSON.stringify(createResponse.data)}` });
-      //     this.logger.log('currency USX create success');
-      //   }
-
-    //   await this.write({ key: 'USXAddress', value: response.data.currency.address });
-    //   return this;
-    // })
-    // .then(async () => {
-    //   // check usx, hkx currency is exist
-    //   const url = `${this.config.microservice.currency}/find`;
-    //   let response = await axios.post(url, { name: 'HKX' });
-    //   const { code } = response.data;
-    //   if (code === undefined || code !== 0) {
-    //     this.logger.log('currency HKX not found, creating');
-    //     // create USX currency
-    //     const currencyUrl = `${this.config.microservice.currency}/create`;
-    //     response = await axios.post(currencyUrl, {
-    //       name: 'HKX',
-    //       symbol: 'HKX',
-    //       totalSupply: '1000000000000000000',
-    //       opAccountAddress: this.address,
-    //     }, { headers: { token: this.token } });
-    //     if (response.data.code === undefined || response.data.code !== 0) throw new CodeError({ code: 9999, message: `create HKX currency error: ${JSON.stringify(createResponse.data)}` });
-    //     this.logger.log('currency HKX create success');
-    //   }
-
-    //   await this.write({ key: 'HKXAddress', value: response.data.currency.address });
-
-      //   return this;
-      // })
       .catch(async (e) => {
         if (e.code === 9999) {
           console.trace(e.message);
@@ -158,9 +113,9 @@ class Lotto extends Bot {
   }
 
   async getAssetID({ symbol }) {
-    let assetID = await this.findOne({ key: `${symbol.toUpperCase()}Address` });
-    if (!assetID && symbol.toUpperCase() === 'TWX') { assetID = this.config.blockchain.twx_contract; }
-    return assetID;
+    if (symbol.toUpperCase() === 'TWX') return this.config.blockchain.twx_contract;
+    if (symbol.toUpperCase() === 'ETH') return this.config.blockchain.eth_contract;
+    return symbol;
   }
 
   async BuyLottoTicket({ body, params }) {
@@ -179,8 +134,7 @@ class Lotto extends Bot {
         if (element.length !== 5 || !this.checkLottoNumberIsValid(element)) throw new CodeError({ message: 'invalid bet numbers', code: Code.INVALID_BET_NUMBERS });
       });
 
-      let assetID = await this.findOne({ key: `${currency.toUpperCase()}Address` });
-      if (!assetID) assetID = await this.getAssetID({ symbol: currency });
+      const assetID = await this.getAssetID({ symbol: currency });
       // check user is exist
       const findUser = await this.db.collection('User').findOne({ _id: new ObjectID(userID) });
       if (!findUser) throw new CodeError({ message: 'user not found', code: Code.USER_NOT_FOUND });
