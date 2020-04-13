@@ -108,19 +108,19 @@ class User extends Bot {
       });
 
       this.config.socket.on('depositing', async (msg) => {
-        if (msg.success) this.config.io.emit('depositing', { success: true });
+        this.config.io.emit('depositing', { success: msg.success });
       });
 
       this.config.socket.emit('createDeposit', { type: 'create', data: { address } });
       this.config.socket.on('createDeposit', async (msg) => {
         if (msg.success) {
           await this.db.collection('User').updateOne({ _id: new ObjectID(user.insertedId) }, { $set: { currencySymbol: msg.assetSymbol, currencyID: msg.assetID } });
-          this.config.io.emit('checkDeposit', {
-            success: true,
-            amount: msg.amount,
-            address,
-          });
         }
+        this.config.io.emit('checkDeposit', {
+          success: msg.success,
+          amount: msg.amount,
+          address,
+        });
       });
 
       return {
