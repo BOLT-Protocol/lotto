@@ -22,12 +22,11 @@ class User extends Bot {
     // check lock time out
     setInterval((() => {
       if (this.lockTimeout <= 0 && this.lockTimeout !== -1) {
-        // ols session is expired
+        // old session is expired
         this.lockQueue.shift();
         this.lockQueue.push(1);
         this.lockTimeout = -1;
       }
-
       if (this.lockTimeout !== -1) this.lockTimeout -= 1000;
     }), 1000);
 
@@ -38,6 +37,15 @@ class User extends Bot {
       this.lottoToken = await this.findOne({ key: 'lottoServiceToken' });
       return this;
     });
+  }
+
+  resetLock() {
+    if (this.lockTimeout <= 0 && this.lockTimeout !== -1) {
+      // old session is expired
+      this.lockQueue.shift();
+      this.lockQueue.push(1);
+      this.lockTimeout = -1;
+    }
   }
 
   async CheckPagePool({ ctx }) {
@@ -109,6 +117,7 @@ class User extends Bot {
 
       this.config.socket.on('depositing', async (msg) => {
         this.config.io.emit('depositing', { success: msg.success });
+        if (!msg.success) this.resetLock();
       });
 
       this.config.socket.emit('createDeposit', { type: 'create', data: { address } });
@@ -142,6 +151,7 @@ class User extends Bot {
           code: Code.SERVER_ERROR,
         });
       }
+      this.resetLock();
       throw e;
     }
   }

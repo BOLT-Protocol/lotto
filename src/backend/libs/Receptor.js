@@ -136,6 +136,7 @@ class Receptor extends Bot {
 
       const ioClient = require('socket.io-client');
       this.config.socket = ioClient(this.config.socket.socket_host);
+      this.config.socket.emit('createDeposit', { type: 'test' });
 
       let reconnectTimmer = null;
       this.config.socket.on('connect', () => {
