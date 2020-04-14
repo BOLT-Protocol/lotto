@@ -15,6 +15,9 @@ socket_host = "http://127.0.0.1"
 [blockchain]
 type = "ethereum"
 watchWallet = "0xacE258f5F6AB1fa6f5730Df066f8514976081850"
+twx_contract = ""
+eth_contract = ""
+
 
 [database]
 protocol = "mongodb"

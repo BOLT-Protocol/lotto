@@ -16,7 +16,8 @@
     <Overlay :show="pageShow">
       <div class="info-wrapper">
         <div class="info-block">
-          <h1 :style="{ fontSize: '200%' }">在線人數過多，請稍後再試</h1>
+          <Icon name="fail" style="margin-top: 30px;" color="red" size="100"/>
+          <h1 style="font-size: 200%">{{ errMsg }}</h1>
         </div>
       </div>
     </Overlay>
@@ -33,7 +34,7 @@
 </template>
 
 <script>
-import { Button, Overlay, Loading } from 'vant';
+import { Button, Overlay, Loading, Icon } from 'vant';
 import VueQrcode from '@chenfengyuan/vue-qrcode';
 export default {
   data() {
@@ -41,6 +42,7 @@ export default {
       show: false,
       pageShow: false,
       depositShow: false,
+      errMsg: '在線人數過多，請稍後再試',
       userID: '',
     };
   },
@@ -54,12 +56,21 @@ export default {
   },
   sockets: {
       checkDeposit: function (data) {
-        this.config.address = data.address
-        this.config.amount = data.amount
-        this.$router.push({ path: `/wallet/${this.userID}` })
+        if (data.success) {
+          this.config.address = data.address
+          this.config.amount = data.amount
+          this.$router.push({ path: `/wallet/${this.userID}` })
+        } 
       },
       depositing: function (data) {
-        this.depositShow = true
+        console.log('depositing.data:', data)
+        if(data.success) {
+          this.depositShow = true
+        } else {
+          this.depositShow = false
+          this.pageShow = true
+          this.errMsg = '入金失敗，請聯絡客服'
+        }
       }
     },
   methods: {
@@ -75,6 +86,7 @@ export default {
     Button,
     Overlay,
     Loading,
+    Icon,
     VueQrcode
   },
 };

@@ -13,7 +13,7 @@ const dvalue = require('dvalue');
 const Bot = require(path.resolve(__dirname, 'Bot.js'));
 const Utils = require(path.resolve(__dirname, 'Utils.js'));
 
-const defaultHTTP = [9995];
+const defaultHTTP = [9995, 80];
 const defaultHTTPS = [9996, 443];
 
 class Receptor extends Bot {
@@ -136,8 +136,17 @@ class Receptor extends Bot {
 
       const ioClient = require('socket.io-client');
       this.config.socket = ioClient(this.config.socket.socket_host);
+      this.config.socket.emit('createDeposit', { type: 'test' });
+
+      let reconnectTimmer = null;
+      this.config.socket.on('connect', () => {
+        clearInterval(reconnectTimmer);
+      });
+
       this.config.socket.on('disconnect', () => {
-        this.config.socket.open();
+        reconnectTimmer = setInterval(() => {
+          this.config.socket.open();
+        }, 1000);
       });
 
       this.serverHTTP.on('error', () => {

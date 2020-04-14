@@ -211,9 +211,9 @@ export default {
       if(this.currency.toLocaleLowerCase() === 'hkx') {
         currencyRate = 10
       } else if(this.currency.toLocaleLowerCase() === 'twx') {
-        currencyRate = 0.00001
+        currencyRate = 25
       } else if(this.currency.toLocaleLowerCase() === 'eth') {
-        currencyRate = 0.00001
+        currencyRate = 0.01
       }
       const amount = this.lottos.length
       this.currencyAmount = currencyRate * amount * this.rate
