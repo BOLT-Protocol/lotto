@@ -25,7 +25,7 @@
     <Overlay :show="depositShow">
       <div class="info-wrapper">
         <div class="info-block">
-          <h1>入金中請勿從整畫面</h1>
+          <h1>入金中請勿重整畫面</h1>
           <Loading color="#1989fa" size="200" />
         </div>
       </div>

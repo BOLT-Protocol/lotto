@@ -710,7 +710,7 @@ class Utils {
   static getLottoNumber(hash, number) {
     const result = [];
     for (let i = hash.length - 1; i >= 0; i--) {
-      result.push(parseInt(hash[i], 16));
+      result.push(parseInt(hash[i], 16) + 1);
       if (result.length >= number) break;
     }
     return result;
