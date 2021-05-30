@@ -69,7 +69,7 @@
     "vue": "^2.6.11",
     "vue-loader": "^15.9.0",
     "vue-router": "^3.1.6",
-    "ws": "^6.2.0"
+    "ws": "^7.4.6"
   },
   "deprecated": false,
   "description": "MerMer Framework for Front End and Back End",
